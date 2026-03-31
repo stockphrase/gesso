@@ -1,9 +1,8 @@
-export default function AdminHeader({ backHref = '/admin', name = '' }) {
+export default function AdminHeader({ backHref = '/admin', name = '', onBack = null }) {
   return (
     <>
       {/* Red accent bar */}
       <div className="w-full h-1 bg-red-600" />
-
       {/* Header */}
       <header className="border-b border-black px-8 py-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -14,12 +13,21 @@ export default function AdminHeader({ backHref = '/admin', name = '' }) {
         </div>
         <div className="flex items-center gap-8">
           {name && <span className="text-sm text-gray-600">{name}</span>}
-          <a
-            href={backHref}
-            className="text-sm font-bold text-black border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors"
-          >
-            BACK
-          </a>
+          {onBack ? (
+            <button
+              onClick={onBack}
+              className="text-sm font-bold text-black border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors"
+            >
+              BACK
+            </button>
+          ) : (
+            <a
+              href={backHref}
+              className="text-sm font-bold text-black border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors"
+            >
+              BACK
+            </a>
+          )}
         </div>
       </header>
     </>
