@@ -8,6 +8,7 @@ const tiles = [
   { title: 'SYLLABUS',       description: 'Course syllabus and schedule',      href: '/dashboard/syllabus'      },
   { title: 'ASSIGNMENTS',    description: 'Submit and track your work',         href: '/dashboard/assignments'   },
   { title: 'ANNOUNCEMENTS',  description: 'Updates from your instructor',       href: '/dashboard/announcements' },
+  { title: 'FILES',          description: 'Course readings and materials',       href: '/dashboard/files'         },
   { title: 'CONTACT',        description: 'Instructor contact and office hours',href: '/dashboard/contact'       },
 ]
 

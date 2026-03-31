@@ -31,16 +31,7 @@ export default function RegisterPage() {
       return
     }
 
-    // Create profile row
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({ id: data.user.id, email, name, role: 'student' })
-
-    if (profileError) {
-      setError(profileError.message)
-      setLoading(false)
-      return
-    }
+    
 
     router.push('/dashboard')
   }
