@@ -1,19 +1,18 @@
 'use client'
-
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase'
 import { useRouter } from 'next/navigation'
 
 const tiles = [
-  { title: 'SYLLABUS',       description: 'Course syllabus and schedule',      href: '/dashboard/syllabus'      },
-  { title: 'ASSIGNMENTS',    description: 'Submit and track your work',         href: '/dashboard/assignments'   },
-  { title: 'ANNOUNCEMENTS',  description: 'Updates from your instructor',       href: '/dashboard/announcements' },
+  { title: 'SYLLABUS',       description: 'Course syllabus and schedule',       href: '/dashboard/syllabus'      },
+  { title: 'ASSIGNMENTS',    description: 'Submit and track your work',          href: '/dashboard/assignments'   },
+  { title: 'ANNOUNCEMENTS',  description: 'Updates from your instructor',        href: '/dashboard/announcements' },
   { title: 'FILES',          description: 'Course readings and materials',       href: '/dashboard/files'         },
-  { title: 'CONTACT',        description: 'Instructor contact and office hours',href: '/dashboard/contact'       },
+  { title: 'CONTACT',        description: 'Instructor contact and office hours', href: '/dashboard/contact'       },
 ]
 
 const adminTiles = [
-  { title: 'ADMIN',          description: 'Manage courses and students',        href: '/admin'                   },
+  { title: 'ADMIN',          description: 'Manage courses and students',         href: '/admin'                   },
 ]
 
 export default function DashboardPage() {
@@ -25,22 +24,18 @@ export default function DashboardPage() {
   useEffect(() => {
     async function getProfile() {
       const { data: { user } } = await supabase.auth.getUser()
-
       if (!user) {
         router.push('/login')
         return
       }
-
       const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
-
       setProfile(data)
       setLoading(false)
     }
-
     getProfile()
   }, [])
 
@@ -63,7 +58,6 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-white">
-
       {/* Header */}
       <header className="border-b border-black px-8 py-6 flex items-center justify-between">
         <h1 className="text-2xl font-black tracking-tight text-black">GESSO</h1>
@@ -81,9 +75,7 @@ export default function DashboardPage() {
       {/* Course title placeholder */}
       <div className="px-8 py-10 border-b border-gray-200">
         <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Course</p>
-        <h2 className="text-3xl font-black text-black tracking-tight">
-          WRITING 101
-        </h2>
+        <h2 className="text-3xl font-black text-black tracking-tight">WRITING 101</h2>
       </div>
 
       {/* Tile grid */}
@@ -92,18 +84,17 @@ export default function DashboardPage() {
           <a
             key={tile.title}
             href={tile.href}
-            className="bg-white p-8 flex flex-col justify-between min-h-48 hover:bg-black hover:text-white transition-colors group"
+            className="bg-white p-4 flex flex-col gap-1 hover:bg-black hover:text-white transition-colors group"
           >
-            <h3 className="text-xl font-black text-black group-hover:text-white tracking-tight">
+            <h3 className="text-base font-black text-black group-hover:text-white tracking-tight uppercase">
               {tile.title}
             </h3>
-            <p className="text-sm text-gray-500 group-hover:text-gray-300 mt-4">
+            <p className="text-xs text-gray-500 group-hover:text-gray-300">
               {tile.description}
             </p>
           </a>
         ))}
       </div>
-
     </main>
   )
 }

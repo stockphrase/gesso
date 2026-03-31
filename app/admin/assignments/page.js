@@ -54,15 +54,11 @@ export default function AdminAssignmentsPage() {
 
   async function loadAssignments(cid) {
     const { data } = await supabase
-      .from('assignments')
-      .select('*')
-      .eq('course_id', cid)
-      .order('position')
+      .from('assignments').select('*').eq('course_id', cid).order('position')
     setAssignments(data || [])
   }
 
   async function openAssignment(assignment) {
-    console.log('courseId at open time:', courseId)
     setSelected(assignment)
 
     const { data: memberships } = await supabase
@@ -70,8 +66,6 @@ export default function AdminAssignmentsPage() {
       .select('user_id')
       .eq('course_id', courseId)
       .eq('role', 'student')
-      
-     console.log('memberships result:', memberships)
 
     const userIds = memberships?.map(m => m.user_id) || []
 
@@ -79,24 +73,17 @@ export default function AdminAssignmentsPage() {
       setStudents([])
     } else {
       const { data: studentProfiles } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', userIds)
-      setStudents(studentProfiles || [])
+        .from('profiles').select('*').in('id', userIds)
+      setStudents(studentProfiles?.filter(Boolean) || [])
     }
 
     const { data: subs } = await supabase
-      .from('submissions')
-      .select('*')
-      .eq('assignment_id', assignment.id)
-
+      .from('submissions').select('*').eq('assignment_id', assignment.id)
     setSubmissions(subs || [])
   }
 
   function getSubmission(userId, stage) {
-    return submissions.find(
-      s => s.user_id === userId && s.draft_stage === stage
-    )
+    return submissions.find(s => s.user_id === userId && s.draft_stage === stage)
   }
 
   async function handleReturn(submission, file) {
@@ -110,9 +97,7 @@ export default function AdminAssignmentsPage() {
 
     if (data.success) {
       const { data: subs } = await supabase
-        .from('submissions')
-        .select('*')
-        .eq('assignment_id', selected.id)
+        .from('submissions').select('*').eq('assignment_id', selected.id)
       setSubmissions(subs || [])
     }
     setReturning(null)
@@ -123,21 +108,15 @@ export default function AdminAssignmentsPage() {
     setSaving(true)
     setFormError(null)
 
-    const { error } = await supabase
-      .from('assignments')
-      .insert({
-        course_id:    courseId,
-        title,
-        description,
-        draft_stages: stages,
-        position:     assignments.length,
-      })
+    const { error } = await supabase.from('assignments').insert({
+      course_id:    courseId,
+      title,
+      description,
+      draft_stages: stages,
+      position:     assignments.length,
+    })
 
-    if (error) {
-      setFormError(error.message)
-      setSaving(false)
-      return
-    }
+    if (error) { setFormError(error.message); setSaving(false); return }
 
     await loadAssignments(courseId)
     setTitle('')
@@ -147,49 +126,29 @@ export default function AdminAssignmentsPage() {
     setSaving(false)
   }
 
-  function addStage() {
-    setStages([...stages, `Draft ${stages.length + 1}`])
-  }
-
-  function updateStage(i, val) {
-    const s = [...stages]
-    s[i] = val
-    setStages(s)
-  }
-
-  function removeStage(i) {
-    setStages(stages.filter((_, idx) => idx !== i))
-  }
+  function addStage() { setStages([...stages, `Draft ${stages.length + 1}`]) }
+  function updateStage(i, val) { const s = [...stages]; s[i] = val; setStages(s) }
+  function removeStage(i) { setStages(stages.filter((_, idx) => idx !== i)) }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <p className="text-black font-bold tracking-widest uppercase">Loading...</p>
       </div>
     )
   }
 
-  // Assignment detail view
   if (selected) {
     return (
-      <div className="min-h-screen bg-white">
-        <AdminHeader
-          backHref={null}
-          onBack={() => setSelected(null)}
-          name={profile?.name}
-        />
+      <div className="min-h-screen bg-gray-100">
+        <AdminHeader onBack={() => setSelected(null)} name={profile?.name} />
         <main className="p-8">
-          <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-2">
-            {selected.title}
-          </h1>
+          <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-2">{selected.title}</h1>
           {selected.description && (
             <p className="text-sm text-gray-500 mb-8">{selected.description}</p>
           )}
-
           {students.length === 0 ? (
-            <p className="text-xs font-bold tracking-widest uppercase text-black">
-              No students enrolled.
-            </p>
+            <p className="text-xs font-bold tracking-widest uppercase text-black">No students enrolled.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse border border-black text-xs font-bold tracking-widest uppercase">
@@ -197,9 +156,7 @@ export default function AdminAssignmentsPage() {
                   <tr className="border-b border-black">
                     <th className="text-left p-3 border-r border-black">Student</th>
                     {selected.draft_stages.map(stage => (
-                      <th key={stage} className="text-left p-3 border-r border-black last:border-r-0">
-                        {stage}
-                      </th>
+                      <th key={stage} className="text-left p-3 border-r border-black last:border-r-0">{stage}</th>
                     ))}
                   </tr>
                 </thead>
@@ -229,14 +186,8 @@ export default function AdminAssignmentsPage() {
                                 </div>
                                 <label className="cursor-pointer border border-black px-2 py-1 hover:bg-black hover:text-white transition-colors inline-block">
                                   {returning === sub.id ? 'Uploading...' : 'Return'}
-                                  <input
-                                    type="file"
-                                    className="hidden"
-                                    disabled={returning === sub.id}
-                                    onChange={e => {
-                                      if (e.target.files[0]) handleReturn(sub, e.target.files[0])
-                                    }}
-                                  />
+                                  <input type="file" className="hidden" disabled={returning === sub.id}
+                                    onChange={e => { if (e.target.files[0]) handleReturn(sub, e.target.files[0]) }} />
                                 </label>
                               </div>
                             )}
@@ -254,92 +205,59 @@ export default function AdminAssignmentsPage() {
     )
   }
 
-  // Assignment list view
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-100">
       <AdminHeader backHref="/admin" name={profile?.name} />
       <main className="p-8">
         <div className="flex items-baseline justify-between mb-8">
-          <h1 className="text-xs font-bold tracking-widest uppercase text-black">
-            Assignments
-          </h1>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="text-xs font-bold tracking-widest uppercase border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors"
-          >
+          <h1 className="text-xs font-bold tracking-widest uppercase text-black">Assignments</h1>
+          <button onClick={() => setShowForm(!showForm)}
+            className="text-xs font-bold tracking-widest uppercase border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors">
             {showForm ? 'Cancel' : '+ New Assignment'}
           </button>
         </div>
 
         {showForm && (
           <form onSubmit={handleCreateAssignment} className="border border-black p-6 mb-8 flex flex-col gap-4">
-            <input
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              required
-              className="border border-black p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black"
-            />
-            <textarea
-              placeholder="Description (optional)"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              rows={3}
-              className="border border-black p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none"
-            />
+            <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} required
+              className="border border-black p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black" />
+            <textarea placeholder="Description (optional)" value={description}
+              onChange={e => setDescription(e.target.value)} rows={3}
+              className="border border-black p-3 text-sm focus:outline-none focus:ring-2 focus:ring-black resize-none" />
             <div>
               <p className="text-xs font-bold tracking-widest uppercase mb-3">Draft Stages</p>
               <div className="flex flex-col gap-2">
                 {stages.map((stage, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={stage}
-                      onChange={e => updateStage(i, e.target.value)}
-                      className="border border-black p-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-black"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeStage(i)}
-                      className="text-xs font-bold tracking-widest uppercase border border-black px-3 py-2 hover:bg-black hover:text-white transition-colors"
-                    >
+                    <input type="text" value={stage} onChange={e => updateStage(i, e.target.value)}
+                      className="border border-black p-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-black" />
+                    <button type="button" onClick={() => removeStage(i)}
+                      className="text-xs font-bold tracking-widest uppercase border border-black px-3 py-2 hover:bg-black hover:text-white transition-colors">
                       Remove
                     </button>
                   </div>
                 ))}
               </div>
-              <button
-                type="button"
-                onClick={addStage}
-                className="mt-3 text-xs font-bold tracking-widest uppercase border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors"
-              >
+              <button type="button" onClick={addStage}
+                className="mt-3 text-xs font-bold tracking-widest uppercase border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors">
                 + Add Stage
               </button>
             </div>
             {formError && <p className="text-red-600 text-sm">{formError}</p>}
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-black text-white p-3 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors disabled:opacity-50"
-            >
+            <button type="submit" disabled={saving}
+              className="bg-black text-white p-3 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors disabled:opacity-50">
               {saving ? 'Saving...' : 'Create Assignment'}
             </button>
           </form>
         )}
 
         {assignments.length === 0 ? (
-          <p className="text-xs font-bold tracking-widest uppercase text-black">
-            No assignments yet.
-          </p>
+          <p className="text-xs font-bold tracking-widest uppercase text-black">No assignments yet.</p>
         ) : (
           <div className="border-t border-black">
             {assignments.map(a => (
-              <button
-                key={a.id}
-                onClick={() => openAssignment(a)}
-                className="w-full border-b border-black flex items-center justify-between py-4 px-2 hover:bg-black hover:text-white transition-colors group text-left"
-              >
+              <button key={a.id} onClick={() => openAssignment(a)}
+                className="w-full border-b border-black flex items-center justify-between py-4 px-2 hover:bg-black hover:text-white transition-colors group text-left">
                 <div>
                   <p className="text-xs font-bold tracking-widest uppercase">{a.title}</p>
                   {a.description && (

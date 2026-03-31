@@ -6,16 +6,16 @@ import { createClient } from '@/utils/supabase'
 import Header from '@/components/Header'
 
 export default function FilesPage() {
-  const router = useRouter()
+  const router   = useRouter()
   const supabase = createClient()
 
-  const [profile, setProfile]           = useState(null)
-  const [folders, setFolders]           = useState([])
-  const [activeFolder, setActiveFolder] = useState(null)
-  const [files, setFiles]               = useState([])
-  const [loading, setLoading]           = useState(true)
-  const [loadingFiles, setLoadingFiles] = useState(false)
-  const [downloading, setDownloading]   = useState(null)
+  const [profile,       setProfile]       = useState(null)
+  const [folders,       setFolders]       = useState([])
+  const [activeFolder,  setActiveFolder]  = useState(null)
+  const [files,         setFiles]         = useState([])
+  const [loading,       setLoading]       = useState(true)
+  const [loadingFiles,  setLoadingFiles]  = useState(false)
+  const [downloading,   setDownloading]   = useState(null)
 
   useEffect(() => {
     async function init() {
@@ -23,15 +23,11 @@ export default function FilesPage() {
       if (!user) { router.push('/login'); return }
 
       const { data: prof } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+        .from('profiles').select('*').eq('id', user.id).single()
 
       if (!prof || prof.role !== 'student') { router.push('/dashboard'); return }
       setProfile(prof)
 
-      // Get enrolled course
       const { data: membership } = await supabase
         .from('course_memberships')
         .select('course_id')
@@ -41,7 +37,6 @@ export default function FilesPage() {
 
       if (!membership) { setLoading(false); return }
 
-      // Load level 1 folders only
       const { data: folderData } = await supabase
         .from('file_folders')
         .select('*')
@@ -52,7 +47,6 @@ export default function FilesPage() {
       setFolders(folderData || [])
       setLoading(false)
     }
-
     init()
   }, [])
 
@@ -62,10 +56,7 @@ export default function FilesPage() {
     setFiles([])
 
     const { data } = await supabase
-      .from('files')
-      .select('*')
-      .eq('folder_id', folder.id)
-      .order('name')
+      .from('files').select('*').eq('folder_id', folder.id).order('name')
 
     setFiles(data || [])
     setLoadingFiles(false)
@@ -82,7 +73,6 @@ export default function FilesPage() {
       const res  = await fetch(`/api/files/download?file_id=${file.id}`)
       const data = await res.json()
       if (data.url) {
-        // Fetch as blob to force download rather than inline open
         const blob    = await fetch(data.url).then(r => r.blob())
         const blobUrl = URL.createObjectURL(blob)
         const a       = document.createElement('a')
@@ -111,19 +101,12 @@ export default function FilesPage() {
         onBack={activeFolder ? backToFolders : null}
         name={profile?.name}
       />
-
       <main className="p-8">
-        {/* Folder view */}
         {!activeFolder && (
           <>
-            <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-8">
-              Files
-            </h1>
-
+            <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-8">Files</h1>
             {folders.length === 0 ? (
-              <p className="text-xs font-bold tracking-widest uppercase text-black">
-                No files available.
-              </p>
+              <p className="text-xs font-bold tracking-widest uppercase text-black">No files available.</p>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {folders.map(folder => (
@@ -132,9 +115,10 @@ export default function FilesPage() {
                     onClick={() => openFolder(folder)}
                     className="border border-black p-6 text-left hover:bg-black hover:text-white transition-colors group"
                   >
-                    <p className="text-xs font-bold tracking-widest uppercase">
-                      {folder.name}
-                    </p>
+                    <svg viewBox="0 0 24 24" className="w-8 h-8 mb-3 fill-none stroke-black group-hover:stroke-white transition-colors" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+                    </svg>
+                    <p className="text-xs font-bold tracking-widest uppercase">{folder.name}</p>
                   </button>
                 ))}
               </div>
@@ -142,36 +126,25 @@ export default function FilesPage() {
           </>
         )}
 
-        {/* File list view */}
         {activeFolder && (
           <>
             <div className="flex items-baseline gap-6 mb-8">
-              <button
-                onClick={backToFolders}
-                className="text-xs font-bold tracking-widest uppercase text-black underline"
-              >
+              <button onClick={backToFolders}
+                className="text-xs font-bold tracking-widest uppercase text-black underline">
                 ← Back
               </button>
               <h1 className="text-xs font-bold tracking-widest uppercase text-black">
                 {activeFolder.name}
               </h1>
             </div>
-
             {loadingFiles ? (
-              <p className="text-xs font-bold tracking-widest uppercase text-black">
-                Loading...
-              </p>
+              <p className="text-xs font-bold tracking-widest uppercase text-black">Loading...</p>
             ) : files.length === 0 ? (
-              <p className="text-xs font-bold tracking-widest uppercase text-black">
-                No files in this folder.
-              </p>
+              <p className="text-xs font-bold tracking-widest uppercase text-black">No files in this folder.</p>
             ) : (
               <div className="border-t border-black">
                 {files.map(file => (
-                  <div
-                    key={file.id}
-                    className="border-b border-black flex items-center gap-6 py-4 px-2"
-                  >
+                  <div key={file.id} className="border-b border-black flex items-center gap-6 py-4 px-2">
                     <button
                       onClick={() => downloadFile(file)}
                       disabled={downloading === file.id}
@@ -179,9 +152,7 @@ export default function FilesPage() {
                     >
                       {downloading === file.id ? 'Downloading...' : 'Download'}
                     </button>
-                    <p className="text-xs font-bold tracking-widest uppercase text-black">
-                      {file.name}
-                    </p>
+                    <p className="text-xs font-bold tracking-widest uppercase text-black">{file.name}</p>
                   </div>
                 ))}
               </div>
