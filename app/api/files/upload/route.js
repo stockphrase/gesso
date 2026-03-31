@@ -34,10 +34,13 @@ export async function POST(request) {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  // DEBUG — check this in your terminal
+  console.log('User ID:', user.id, 'Role:', profile?.role)
+
   // Parse form data
-  const formData       = await request.formData()
-  const file           = formData.get('file')
-  const courseId       = formData.get('course_id')
+  const formData        = await request.formData()
+  const file            = formData.get('file')
+  const courseId        = formData.get('course_id')
   const permissionLevel = parseInt(formData.get('permission_level'))
 
   if (!file || !courseId || !permissionLevel) {
@@ -59,7 +62,6 @@ export async function POST(request) {
 
   zip.forEach((relativePath, zipEntry) => {
     if (zipEntry.dir) return
-    // Skip hidden files like __MACOSX
     if (relativePath.startsWith('__MACOSX')) return
     if (relativePath.startsWith('.')) return
 
@@ -91,7 +93,6 @@ export async function POST(request) {
     if (existingFolder) {
       folderId = existingFolder.id
     } else {
-      // Create folder
       const { data: newFolder, error: folderError } = await supabase
         .from('file_folders')
         .insert({
@@ -137,7 +138,6 @@ export async function POST(request) {
           .single()
 
         if (existingFile) {
-          // Update existing record
           await supabase
             .from('files')
             .update({
@@ -146,8 +146,8 @@ export async function POST(request) {
             })
             .eq('id', existingFile.id)
         } else {
-          // Insert new record
-          await supabase
+          // Insert new record with error checking
+          const { error: insertError } = await supabase
             .from('files')
             .insert({
               folder_id:    folderId,
@@ -156,6 +156,11 @@ export async function POST(request) {
               size:         fileData.byteLength,
               uploaded_by:  user.id,
             })
+
+          if (insertError) {
+            results.errors.push(`Failed to upload ${fileName}: ${insertError.message}`)
+            continue
+          }
         }
 
         results.files_uploaded++
