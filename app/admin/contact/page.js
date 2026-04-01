@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase'
 import AdminHeader from '@/components/AdminHeader'
 
+import { getActiveCourse } from '@/utils/course'
+
 export default function AdminContactPage() {
   const router   = useRouter()
   const supabase = createClient()
@@ -33,20 +35,14 @@ export default function AdminContactPage() {
       if (prof?.role !== 'admin') { router.push('/dashboard'); return }
       setProfile(prof)
 
-      const { data: membership } = await supabase
-        .from('course_memberships')
-        .select('course_id')
-        .eq('user_id', user.id)
-        .limit(1)
-        .single()
-
-      if (!membership) { setLoading(false); return }
-      setCourseId(membership.course_id)
+      const course = getActiveCourse()
+      if (!course) { router.push('/courses'); return }
+      setCourseId(course.id)
 
       const { data: contact } = await supabase
         .from('contact_info')
         .select('*')
-        .eq('course_id', membership.course_id)
+        .eq('course_id', course.id)
         .maybeSingle()
 
       if (contact) {

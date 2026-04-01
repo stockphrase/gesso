@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase'
 import Header from '@/components/Header'
+import { getActiveCourse } from '@/utils/course'
 
 function formatDate(ts) {
   if (!ts) return ''
@@ -19,12 +20,12 @@ export default function StudentAssignmentsPage() {
   const router   = useRouter()
   const supabase = createClient()
 
-  const [profile,     setProfile]     = useState(null)
-  const [assignments, setAssignments]  = useState([])
-  const [submissions, setSubmissions]  = useState([])
-  const [loading,     setLoading]      = useState(true)
-  const [uploading,   setUploading]    = useState(null)
-  const [downloading, setDownloading]  = useState(null)
+  const [profile,     setProfile]    = useState(null)
+  const [assignments, setAssignments] = useState([])
+  const [submissions, setSubmissions] = useState([])
+  const [loading,     setLoading]    = useState(true)
+  const [uploading,   setUploading]  = useState(null)
+  const [downloading, setDownloading] = useState(null)
 
   useEffect(() => {
     async function load() {
@@ -33,30 +34,21 @@ export default function StudentAssignmentsPage() {
 
       const { data: prof } = await supabase
         .from('profiles').select('*').eq('id', user.id).single()
-
       if (!prof || prof.role !== 'student') { router.push('/dashboard'); return }
       setProfile(prof)
 
-      const { data: membership } = await supabase
-        .from('course_memberships')
-        .select('course_id')
-        .eq('user_id', user.id)
-        .limit(1)
-        .single()
-
-      if (!membership) { setLoading(false); return }
+      const course = getActiveCourse()
+      if (!course) { router.push('/courses'); return }
 
       const { data: asgn } = await supabase
         .from('assignments')
         .select('*')
-        .eq('course_id', membership.course_id)
+        .eq('course_id', course.id)
         .order('position')
-
       setAssignments(asgn || [])
 
       const { data: subs } = await supabase
         .from('submissions').select('*').eq('user_id', user.id)
-
       setSubmissions(subs || [])
       setLoading(false)
     }
@@ -70,15 +62,12 @@ export default function StudentAssignmentsPage() {
   async function handleSubmit(assignment, stage, file) {
     const key = `${assignment.id}-${stage}`
     setUploading(key)
-
     const fd = new FormData()
     fd.append('file', file)
     fd.append('assignment_id', assignment.id)
     fd.append('draft_stage', stage)
-
     const res  = await fetch('/api/submissions/submit', { method: 'POST', body: fd })
     const data = await res.json()
-
     if (data.success) {
       const { data: { user } } = await supabase.auth.getUser()
       const { data: subs } = await supabase
@@ -120,8 +109,6 @@ export default function StudentAssignmentsPage() {
       <Header backHref="/dashboard" name={profile?.name} />
       <main className="p-8">
         <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-4">Assignments</h1>
-
-        {/* Legend */}
         <div className="flex flex-wrap items-center gap-6 mb-8 border border-black p-4">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
@@ -136,7 +123,6 @@ export default function StudentAssignmentsPage() {
             <span className="text-xs font-bold tracking-widest uppercase">Returned</span>
           </div>
         </div>
-
         {assignments.length === 0 ? (
           <p className="text-xs font-bold tracking-widest uppercase text-black">No assignments yet.</p>
         ) : (
@@ -158,7 +144,6 @@ export default function StudentAssignmentsPage() {
                       {assignment.description && (
                         <p className="text-gray-400 font-normal normal-case mt-1 tracking-normal">{assignment.description}</p>
                       )}
-                      {/* Due dates */}
                       {assignment.due_dates && Object.keys(assignment.due_dates).length > 0 && (
                         <div className="mt-2 flex flex-col gap-1">
                           {assignment.draft_stages.map(stage => (

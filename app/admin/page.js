@@ -23,10 +23,8 @@ export default function AdminPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
-
       const { data: profile } = await supabase
         .from('profiles').select('*').eq('id', user.id).single()
-
       if (profile?.role !== 'admin') { router.push('/dashboard'); return }
       setProfile(profile)
       setLoading(false)
@@ -36,7 +34,7 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-red-50 flex items-center justify-center">
+      <main className="min-h-screen bg-gray-100 flex items-center justify-center">
         <p className="text-black font-bold">LOADING...</p>
       </main>
     )
@@ -54,7 +52,7 @@ export default function AdminPage() {
           <a
             key={tile.title}
             href={tile.href}
-            className="bg-gray-100 p-4 flex flex-col gap-1 hover:bg-black hover:text-white transition-colors group"
+            className="bg-gray-100 p-4 flex flex-col gap-1 hover:bg-black/80 hover:text-white transition-colors duration-300 group"
           >
             <h3 className="text-base font-black text-black group-hover:text-white tracking-tight uppercase">
               {tile.title}

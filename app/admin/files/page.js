@@ -6,19 +6,20 @@ import { useRouter } from 'next/navigation'
 import AdminHeader from '@/components/AdminHeader'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFolder, faFolderOpen } from '@fortawesome/free-solid-svg-icons'
+import { getActiveCourse } from '@/utils/course'
 
 export default function AdminFilesPage() {
-  const [folders, setFolders]         = useState([])
-  const [expanded, setExpanded]       = useState(null)
+  const [folders,     setFolders]     = useState([])
+  const [expanded,    setExpanded]    = useState(null)
   const [folderFiles, setFolderFiles] = useState({})
-  const [uploading, setUploading]     = useState(false)
-  const [permission, setPermission]   = useState('1')
-  const [result, setResult]           = useState(null)
-  const [error, setError]             = useState(null)
-  const [loading, setLoading]         = useState(true)
-  const [courseId, setCourseId]       = useState(null)
-  const router                        = useRouter()
-  const supabase                      = createClient()
+  const [uploading,   setUploading]   = useState(false)
+  const [permission,  setPermission]  = useState('1')
+  const [result,      setResult]      = useState(null)
+  const [error,       setError]       = useState(null)
+  const [loading,     setLoading]     = useState(true)
+  const [courseId,    setCourseId]    = useState(null)
+  const router   = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
     async function load() {
@@ -27,16 +28,13 @@ export default function AdminFilesPage() {
 
       const { data: profile } = await supabase
         .from('profiles').select('role').eq('id', user.id).single()
-
       if (profile?.role !== 'admin') { router.push('/dashboard'); return }
 
-      const { data: courses } = await supabase.from('courses').select('id').limit(1)
+      const course = getActiveCourse()
+      if (!course) { router.push('/courses'); return }
 
-      if (courses && courses.length > 0) {
-        setCourseId(courses[0].id)
-        await loadFolders(courses[0].id)
-      }
-
+      setCourseId(course.id)
+      await loadFolders(course.id)
       setLoading(false)
     }
     load()
@@ -123,7 +121,7 @@ export default function AdminFilesPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-500 flex items-center justify-center">
+      <main className="min-h-screen bg-gray-100 flex items-center justify-center">
         <p className="text-black font-bold">LOADING...</p>
       </main>
     )
@@ -132,8 +130,8 @@ export default function AdminFilesPage() {
   return (
     <main className="min-h-screen bg-gray-100">
       <AdminHeader backHref="/admin" />
-      <div className="px-8 py-10 border-b border-red-200">
-        <p className="text-xs text-red-400 uppercase tracking-widest mb-1">Admin</p>
+      <div className="px-8 py-10 border-b border-gray-300">
+        <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Admin</p>
         <h2 className="text-3xl font-black text-black tracking-tight">FILES</h2>
       </div>
       <div className="px-8 py-8 grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -144,22 +142,16 @@ export default function AdminFilesPage() {
               <label className="text-xs text-gray-400 uppercase tracking-widest block mb-1">ZIP File</label>
               <label className="flex items-center justify-between border border-black p-3 w-full cursor-pointer hover:bg-gray-50">
                 <span className="text-xs font-bold tracking-widest uppercase text-gray-500" id="zipfile-label">
-                  {uploading ? 'Uploading...' : 'Choose ZIP file'}
+                  Choose ZIP file
                 </span>
                 <span className="text-xs font-bold tracking-widest uppercase border border-black px-3 py-1 hover:bg-black hover:text-white transition-colors">
                   Browse
                 </span>
-                <input
-                  type="file"
-                  name="zipfile"
-                  accept=".zip"
-                  required
-                  className="hidden"
+                <input type="file" name="zipfile" accept=".zip" required className="hidden"
                   onChange={e => {
                     const f = e.target.files[0]
                     document.getElementById('zipfile-label').textContent = f ? f.name : 'Choose ZIP file'
-                  }}
-                />
+                  }} />
               </label>
             </div>
             <div>
@@ -192,16 +184,15 @@ export default function AdminFilesPage() {
           {folders.length === 0 ? (
             <p className="text-gray-400 text-sm">No folders yet. Upload a ZIP to create them.</p>
           ) : (
-            <div className="flex flex-col divide-y divide-red-200">
+            <div className="flex flex-col divide-y divide-gray-200">
               {folders.map((folder) => (
                 <div key={folder.id}>
                   <div className="py-4 flex items-center justify-between gap-4">
-                   <button onClick={() => toggleFolder(folder.id)}
-  className="text-sm font-bold text-black hover:underline text-left flex items-center gap-2">
-  <FontAwesomeIcon icon={expanded === folder.id ? faFolderOpen : faFolder} className="w-4 h-4" />
-  {folder.name}
-</button>
-                   
+                    <button onClick={() => toggleFolder(folder.id)}
+                      className="text-sm font-bold text-black hover:underline text-left flex items-center gap-2">
+                      <FontAwesomeIcon icon={expanded === folder.id ? faFolderOpen : faFolder} className="w-4 h-4" />
+                      {folder.name}
+                    </button>
                     <div className="flex items-center gap-3 shrink-0">
                       <select value={folder.permission_level}
                         onChange={e => handleUpdatePermission(folder.id, e.target.value)}
@@ -228,7 +219,7 @@ export default function AdminFilesPage() {
                       ) : (
                         folderFiles[folder.id].map((file) => (
                           <div key={file.id}
-                            className="flex items-center justify-between text-sm border border-red-100 bg-white p-2">
+                            className="flex items-center justify-between text-sm border border-gray-100 bg-white p-2">
                             <span className="text-gray-700">{file.name}</span>
                             <div className="flex items-center gap-3">
                               <span className="text-xs text-gray-400">

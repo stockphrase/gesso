@@ -6,6 +6,8 @@ import { createClient } from '@/utils/supabase'
 import AdminHeader from '@/components/AdminHeader'
 import { marked } from 'marked'
 
+import { getActiveCourse } from '@/utils/course'
+
 const TEMPLATE = `# Course Title
 
 ## Course Description
@@ -53,7 +55,6 @@ export default function AdminSyllabusPage() {
   const [loading,  setLoading]  = useState(true)
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState(null)
-  const [showRef,   setShowRef]  = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -66,21 +67,15 @@ export default function AdminSyllabusPage() {
       if (prof?.role !== 'admin') { router.push('/dashboard'); return }
       setProfile(prof)
 
-      const { data: membership } = await supabase
-        .from('course_memberships')
-        .select('course_id')
-        .eq('user_id', user.id)
-        .limit(1)
-        .single()
-
-      if (!membership) { setLoading(false); return }
-      setCourseId(membership.course_id)
+      const course = getActiveCourse()
+      if (!course) { router.push('/courses'); return }
+      setCourseId(course.id)
 
       const { data: syllabus } = await supabase
         .from('syllabi')
         .select('content')
-        .eq('course_id', membership.course_id)
-        .single()
+        .eq('course_id', course.id)
+        .maybeSingle()
 
       if (syllabus) {
         setContent(syllabus.content)

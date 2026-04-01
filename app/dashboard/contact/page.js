@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase'
 import Header from '@/components/Header'
+import { getActiveCourse } from '@/utils/course'
 
-// Obfuscated email link — assembles mailto at click time, never in static HTML
 function ObfuscatedEmail({ email }) {
   const [revealed, setRevealed] = useState(false)
   const parts = email.split('@')
@@ -16,13 +16,10 @@ function ObfuscatedEmail({ email }) {
   }
 
   return (
-    <a
-      href="#"
-      onClick={handleClick}
+    <a href="#" onClick={handleClick}
       onMouseEnter={() => setRevealed(true)}
       onMouseLeave={() => setRevealed(false)}
-      className="text-base font-black text-black tracking-tight hover:underline"
-    >
+      className="text-base font-black text-black tracking-tight hover:underline">
       {revealed ? email : `${parts[0]}[at]${parts[1]}`}
     </a>
   )
@@ -37,6 +34,9 @@ export default function StudentContactPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const course = getActiveCourse()
+    if (!course) { router.push('/courses'); return }
+
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
@@ -47,19 +47,10 @@ export default function StudentContactPage() {
       if (!prof || prof.role !== 'student') { router.push('/dashboard'); return }
       setProfile(prof)
 
-      const { data: membership } = await supabase
-        .from('course_memberships')
-        .select('course_id')
-        .eq('user_id', user.id)
-        .limit(1)
-        .single()
-
-      if (!membership) { setLoading(false); return }
-
       const { data } = await supabase
         .from('contact_info')
         .select('*')
-        .eq('course_id', membership.course_id)
+        .eq('course_id', course.id)
         .maybeSingle()
 
       setContact(data || null)
@@ -81,7 +72,6 @@ export default function StudentContactPage() {
       <Header backHref="/dashboard" name={profile?.name} />
       <main className="p-8 max-w-xl">
         <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-8">Contact</h1>
-
         {!contact ? (
           <p className="text-xs font-bold tracking-widest uppercase text-black">No contact info posted yet.</p>
         ) : (

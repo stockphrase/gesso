@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase'
 import AdminHeader from '@/components/AdminHeader'
+import { getActiveCourse } from '@/utils/course'
 
 function formatDate(ts) {
   if (!ts) return '—'
@@ -19,16 +20,16 @@ export default function AdminAssignmentsPage() {
   const router   = useRouter()
   const supabase = createClient()
 
-  const [profile,     setProfile]     = useState(null)
-  const [courseId,    setCourseId]     = useState(null)
-  const [assignments, setAssignments]  = useState([])
-  const [selected,    setSelected]     = useState(null)
-  const [students,    setStudents]     = useState([])
-  const [submissions, setSubmissions]  = useState([])
-  const [loading,     setLoading]      = useState(true)
-  const [returning,   setReturning]    = useState(null)
-  const [downloading, setDownloading]  = useState(null)
-  const [zipping,     setZipping]      = useState(null)
+  const [profile,     setProfile]    = useState(null)
+  const [courseId,    setCourseId]   = useState(null)
+  const [assignments, setAssignments] = useState([])
+  const [selected,    setSelected]   = useState(null)
+  const [students,    setStudents]   = useState([])
+  const [submissions, setSubmissions] = useState([])
+  const [loading,     setLoading]    = useState(true)
+  const [returning,   setReturning]  = useState(null)
+  const [downloading, setDownloading] = useState(null)
+  const [zipping,     setZipping]    = useState(null)
 
   const [showForm,    setShowForm]    = useState(false)
   const [title,       setTitle]       = useState('')
@@ -45,20 +46,13 @@ export default function AdminAssignmentsPage() {
 
       const { data: prof } = await supabase
         .from('profiles').select('*').eq('id', user.id).single()
-
       if (prof?.role !== 'admin') { router.push('/dashboard'); return }
       setProfile(prof)
 
-      const { data: membership } = await supabase
-        .from('course_memberships')
-        .select('course_id')
-        .eq('user_id', user.id)
-        .limit(1)
-        .single()
-
-      if (!membership) { setLoading(false); return }
-      setCourseId(membership.course_id)
-      await loadAssignments(membership.course_id)
+      const course = getActiveCourse()
+      if (!course) { router.push('/courses'); return }
+      setCourseId(course.id)
+      await loadAssignments(course.id)
       setLoading(false)
     }
     load()
@@ -80,7 +74,6 @@ export default function AdminAssignmentsPage() {
       .eq('role', 'student')
 
     const userIds = memberships?.map(m => m.user_id) || []
-
     if (userIds.length === 0) {
       setStudents([])
     } else {
@@ -103,10 +96,8 @@ export default function AdminAssignmentsPage() {
     const fd = new FormData()
     fd.append('file', file)
     fd.append('submission_id', submission.id)
-
     const res  = await fetch('/api/submissions/return', { method: 'POST', body: fd })
     const data = await res.json()
-
     if (data.success) {
       const { data: subs } = await supabase
         .from('submissions').select('*').eq('assignment_id', selected.id)
@@ -137,25 +128,20 @@ export default function AdminAssignmentsPage() {
   async function downloadStageZip(stage) {
     setZipping(stage)
     try {
-      const JSZip   = (await import('jszip')).default
-      const zip     = new JSZip()
-      const subs    = submissions.filter(s => s.draft_stage === stage && s.storage_path)
-
+      const JSZip = (await import('jszip')).default
+      const zip   = new JSZip()
+      const subs  = submissions.filter(s => s.draft_stage === stage && s.storage_path)
       for (const sub of subs) {
         const student = students.find(s => s.id === sub.user_id)
         if (!student) continue
-
         const res  = await fetch(`/api/submissions/admin-download?submission_id=${sub.id}`)
         const data = await res.json()
         if (!data.url) continue
-
         const blob = await fetch(data.url).then(r => r.blob())
         const ext  = sub.filename.split('.').pop()
-        const name = `${student.name}_${selected.title}_${stage}.${ext}`
-          .replace(/\s+/g, '_')
+        const name = `${student.name}_${selected.title}_${stage}.${ext}`.replace(/\s+/g, '_')
         zip.file(name, blob)
       }
-
       const content = await zip.generateAsync({ type: 'blob' })
       const blobUrl = URL.createObjectURL(content)
       const a       = document.createElement('a')
@@ -174,26 +160,21 @@ export default function AdminAssignmentsPage() {
       const JSZip = (await import('jszip')).default
       const zip   = await JSZip.loadAsync(await file.arrayBuffer())
       let returned = 0
-
       for (const student of students) {
-        const namePart = student.name.replace(/\s+/g, '_')
+        const namePart     = student.name.replace(/\s+/g, '_')
         const matchingFile = Object.keys(zip.files).find(f =>
           f.toLowerCase().includes(namePart.toLowerCase()) && !zip.files[f].dir
         )
         if (!matchingFile) continue
-
         const sub = getSubmission(student.id, stage)
         if (!sub) continue
-
         const fileData = await zip.files[matchingFile].async('blob')
         const fd       = new FormData()
         fd.append('file', new File([fileData], matchingFile.split('/').pop()))
         fd.append('submission_id', sub.id)
-
         await fetch('/api/submissions/return', { method: 'POST', body: fd })
         returned++
       }
-
       const { data: subs } = await supabase
         .from('submissions').select('*').eq('assignment_id', selected.id)
       setSubmissions(subs || [])
@@ -207,7 +188,6 @@ export default function AdminAssignmentsPage() {
     e.preventDefault()
     setSaving(true)
     setFormError(null)
-
     const { error } = await supabase.from('assignments').insert({
       course_id:    courseId,
       title,
@@ -216,9 +196,7 @@ export default function AdminAssignmentsPage() {
       due_dates:    dueDates,
       position:     assignments.length,
     })
-
     if (error) { setFormError(error.message); setSaving(false); return }
-
     await loadAssignments(courseId)
     setTitle('')
     setDescription('')
@@ -230,26 +208,14 @@ export default function AdminAssignmentsPage() {
 
   function addStage() { setStages([...stages, `Draft ${stages.length + 1}`]) }
   function updateStage(i, val) {
-    const s = [...stages]
-    const old = s[i]
-    s[i] = val
-    setStages(s)
-    if (dueDates[old]) {
-      const d = { ...dueDates, [val]: dueDates[old] }
-      delete d[old]
-      setDueDates(d)
-    }
+    const s = [...stages]; const old = s[i]; s[i] = val; setStages(s)
+    if (dueDates[old]) { const d = { ...dueDates, [val]: dueDates[old] }; delete d[old]; setDueDates(d) }
   }
   function removeStage(i) {
-    const s = stages[i]
-    setStages(stages.filter((_, idx) => idx !== i))
-    const d = { ...dueDates }
-    delete d[s]
-    setDueDates(d)
+    const s = stages[i]; setStages(stages.filter((_, idx) => idx !== i))
+    const d = { ...dueDates }; delete d[s]; setDueDates(d)
   }
-  function updateDueDate(stage, val) {
-    setDueDates({ ...dueDates, [stage]: val })
-  }
+  function updateDueDate(stage, val) { setDueDates({ ...dueDates, [stage]: val }) }
 
   if (loading) {
     return (
@@ -265,11 +231,7 @@ export default function AdminAssignmentsPage() {
         <AdminHeader onBack={() => setSelected(null)} name={profile?.name} />
         <main className="p-8">
           <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-2">{selected.title}</h1>
-          {selected.description && (
-            <p className="text-sm text-gray-500 mb-4">{selected.description}</p>
-          )}
-
-          {/* Due dates summary */}
+          {selected.description && <p className="text-sm text-gray-500 mb-4">{selected.description}</p>}
           {selected.due_dates && Object.keys(selected.due_dates).length > 0 && (
             <div className="flex flex-wrap gap-4 mb-8">
               {selected.draft_stages.map(stage => (
@@ -281,7 +243,6 @@ export default function AdminAssignmentsPage() {
               ))}
             </div>
           )}
-
           {students.length === 0 ? (
             <p className="text-xs font-bold tracking-widest uppercase text-black">No students enrolled.</p>
           ) : (
@@ -294,11 +255,8 @@ export default function AdminAssignmentsPage() {
                       <th key={stage} className="text-left p-3 border-r border-black last:border-r-0">
                         <div>{stage}</div>
                         <div className="flex gap-2 mt-2">
-                          <button
-                            onClick={() => downloadStageZip(stage)}
-                            disabled={zipping === stage}
-                            className="text-xs font-bold tracking-widest uppercase border border-black px-2 py-1 hover:bg-black hover:text-white transition-colors disabled:opacity-40 normal-case"
-                          >
+                          <button onClick={() => downloadStageZip(stage)} disabled={zipping === stage}
+                            className="text-xs font-bold tracking-widest uppercase border border-black px-2 py-1 hover:bg-black hover:text-white transition-colors disabled:opacity-40 normal-case">
                             {zipping === stage ? 'Zipping...' : '↓ All'}
                           </button>
                           <label className="text-xs font-bold tracking-widest uppercase border border-black px-2 py-1 hover:bg-black hover:text-white transition-colors cursor-pointer normal-case">
@@ -317,8 +275,8 @@ export default function AdminAssignmentsPage() {
                     <tr key={student.id} className="border-b border-black last:border-b-0">
                       <td className="p-3 border-r border-black">{student.name}</td>
                       {selected.draft_stages.map(stage => {
-                        const sub = getSubmission(student.id, stage)
-                        const due = selected.due_dates?.[stage]
+                        const sub  = getSubmission(student.id, stage)
+                        const due  = selected.due_dates?.[stage]
                         const late = sub && isLate(sub.submitted_at, due)
                         return (
                           <td key={stage} className="p-3 border-r border-black last:border-r-0">
@@ -345,11 +303,8 @@ export default function AdminAssignmentsPage() {
                                 </div>
                                 <span className="text-gray-400 font-normal normal-case tracking-normal">{formatDate(sub.submitted_at)}</span>
                                 <div className="flex gap-2">
-                                  <button
-                                    onClick={() => downloadSingle(sub)}
-                                    disabled={downloading === sub.id}
-                                    className="border border-black px-2 py-1 hover:bg-black hover:text-white transition-colors disabled:opacity-40"
-                                  >
+                                  <button onClick={() => downloadSingle(sub)} disabled={downloading === sub.id}
+                                    className="border border-black px-2 py-1 hover:bg-black hover:text-white transition-colors disabled:opacity-40">
                                     {downloading === sub.id ? 'Downloading...' : '↓ Download'}
                                   </button>
                                   <label className="cursor-pointer border border-black px-2 py-1 hover:bg-black hover:text-white transition-colors">
@@ -385,7 +340,6 @@ export default function AdminAssignmentsPage() {
             {showForm ? 'Cancel' : '+ New Assignment'}
           </button>
         </div>
-
         {showForm && (
           <form onSubmit={handleCreateAssignment} className="border border-black p-6 mb-8 flex flex-col gap-4">
             <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} required
@@ -400,8 +354,7 @@ export default function AdminAssignmentsPage() {
                   <div key={i} className="flex items-center gap-2">
                     <input type="text" value={stage} onChange={e => updateStage(i, e.target.value)}
                       className="border border-black p-2 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-black" />
-                    <input type="date" value={dueDates[stage] || ''}
-                      onChange={e => updateDueDate(stage, e.target.value)}
+                    <input type="date" value={dueDates[stage] || ''} onChange={e => updateDueDate(stage, e.target.value)}
                       className="border border-black p-2 text-sm focus:outline-none focus:ring-2 focus:ring-black" />
                     <button type="button" onClick={() => removeStage(i)}
                       className="text-xs font-bold tracking-widest uppercase border border-black px-3 py-2 hover:bg-black hover:text-white transition-colors">
@@ -422,7 +375,6 @@ export default function AdminAssignmentsPage() {
             </button>
           </form>
         )}
-
         {assignments.length === 0 ? (
           <p className="text-xs font-bold tracking-widest uppercase text-black">No assignments yet.</p>
         ) : (
@@ -432,9 +384,7 @@ export default function AdminAssignmentsPage() {
                 className="w-full border-b border-black flex items-center justify-between py-4 px-2 hover:bg-black hover:text-white transition-colors group text-left">
                 <div>
                   <p className="text-xs font-bold tracking-widest uppercase">{a.title}</p>
-                  {a.description && (
-                    <p className="text-sm text-gray-500 group-hover:text-gray-300 mt-1">{a.description}</p>
-                  )}
+                  {a.description && <p className="text-sm text-gray-500 group-hover:text-gray-300 mt-1">{a.description}</p>}
                 </div>
                 <p className="text-xs font-bold tracking-widest uppercase text-gray-400 group-hover:text-gray-300 shrink-0 ml-4">
                   {a.draft_stages.length} stage{a.draft_stages.length !== 1 ? 's' : ''}
