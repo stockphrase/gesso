@@ -5,6 +5,16 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase'
 import Header from '@/components/Header'
 
+function formatDate(ts) {
+  if (!ts) return ''
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function isLate(submittedAt, dueDate) {
+  if (!submittedAt || !dueDate) return false
+  return new Date(submittedAt) > new Date(dueDate)
+}
+
 export default function StudentAssignmentsPage() {
   const router   = useRouter()
   const supabase = createClient()
@@ -13,7 +23,7 @@ export default function StudentAssignmentsPage() {
   const [assignments, setAssignments]  = useState([])
   const [submissions, setSubmissions]  = useState([])
   const [loading,     setLoading]      = useState(true)
-  const [uploading,   setUploading]    = useState(null) // 'assignmentId-stage'
+  const [uploading,   setUploading]    = useState(null)
   const [downloading, setDownloading]  = useState(null)
 
   useEffect(() => {
@@ -45,9 +55,7 @@ export default function StudentAssignmentsPage() {
       setAssignments(asgn || [])
 
       const { data: subs } = await supabase
-        .from('submissions')
-        .select('*')
-        .eq('user_id', user.id)
+        .from('submissions').select('*').eq('user_id', user.id)
 
       setSubmissions(subs || [])
       setLoading(false)
@@ -56,9 +64,7 @@ export default function StudentAssignmentsPage() {
   }, [])
 
   function getSubmission(assignmentId, stage) {
-    return submissions.find(
-      s => s.assignment_id === assignmentId && s.draft_stage === stage
-    )
+    return submissions.find(s => s.assignment_id === assignmentId && s.draft_stage === stage)
   }
 
   async function handleSubmit(assignment, stage, file) {
@@ -74,12 +80,9 @@ export default function StudentAssignmentsPage() {
     const data = await res.json()
 
     if (data.success) {
-      // Refresh submissions
       const { data: { user } } = await supabase.auth.getUser()
       const { data: subs } = await supabase
-        .from('submissions')
-        .select('*')
-        .eq('user_id', user.id)
+        .from('submissions').select('*').eq('user_id', user.id)
       setSubmissions(subs || [])
     }
     setUploading(null)
@@ -116,12 +119,10 @@ export default function StudentAssignmentsPage() {
     <div className="min-h-screen bg-white">
       <Header backHref="/dashboard" name={profile?.name} />
       <main className="p-8">
-        <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-4">
-          Assignments
-        </h1>
+        <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-4">Assignments</h1>
 
         {/* Legend */}
-        <div className="flex items-center gap-6 mb-8 border border-black p-4 inline-flex">
+        <div className="flex flex-wrap items-center gap-6 mb-8 border border-black p-4">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-red-500 shrink-0" />
             <span className="text-xs font-bold tracking-widest uppercase">Not submitted</span>
@@ -137,20 +138,15 @@ export default function StudentAssignmentsPage() {
         </div>
 
         {assignments.length === 0 ? (
-          <p className="text-xs font-bold tracking-widest uppercase text-black">
-            No assignments yet.
-          </p>
+          <p className="text-xs font-bold tracking-widest uppercase text-black">No assignments yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border border-black text-xs font-bold tracking-widest uppercase">
               <thead>
                 <tr className="border-b border-black">
                   <th className="text-left p-3 border-r border-black">Assignment</th>
-                  {/* Render all unique stages across all assignments */}
                   {[...new Set(assignments.flatMap(a => a.draft_stages))].map(stage => (
-                    <th key={stage} className="text-left p-3 border-r border-black last:border-r-0">
-                      {stage}
-                    </th>
+                    <th key={stage} className="text-left p-3 border-r border-black last:border-r-0">{stage}</th>
                   ))}
                 </tr>
               </thead>
@@ -160,15 +156,27 @@ export default function StudentAssignmentsPage() {
                     <td className="p-3 border-r border-black">
                       <p>{assignment.title}</p>
                       {assignment.description && (
-                        <p className="text-gray-400 font-normal normal-case mt-1 tracking-normal">
-                          {assignment.description}
-                        </p>
+                        <p className="text-gray-400 font-normal normal-case mt-1 tracking-normal">{assignment.description}</p>
+                      )}
+                      {/* Due dates */}
+                      {assignment.due_dates && Object.keys(assignment.due_dates).length > 0 && (
+                        <div className="mt-2 flex flex-col gap-1">
+                          {assignment.draft_stages.map(stage => (
+                            assignment.due_dates[stage] ? (
+                              <p key={stage} className="text-gray-400 font-normal normal-case tracking-normal">
+                                {stage}: due {new Date(assignment.due_dates[stage]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </p>
+                            ) : null
+                          ))}
+                        </div>
                       )}
                     </td>
                     {[...new Set(assignments.flatMap(a => a.draft_stages))].map(stage => {
-                      const sub = getSubmission(assignment.id, stage)
-                      const key = `${assignment.id}-${stage}`
+                      const sub     = getSubmission(assignment.id, stage)
+                      const key     = `${assignment.id}-${stage}`
                       const isStage = assignment.draft_stages.includes(stage)
+                      const due     = assignment.due_dates?.[stage]
+                      const late    = sub && isLate(sub.submitted_at, due)
 
                       if (!isStage) {
                         return <td key={stage} className="p-3 border-r border-black last:border-r-0 bg-gray-50" />
@@ -182,40 +190,31 @@ export default function StudentAssignmentsPage() {
                               <span className="underline group-hover:no-underline">
                                 {uploading === key ? 'Uploading...' : 'Upload'}
                               </span>
-                              <input
-                                type="file"
-                                className="hidden"
-                                disabled={uploading === key}
-                                onChange={e => {
-                                  if (e.target.files[0]) handleSubmit(assignment, stage, e.target.files[0])
-                                }}
-                              />
+                              <input type="file" className="hidden" disabled={uploading === key}
+                                onChange={e => { if (e.target.files[0]) handleSubmit(assignment, stage, e.target.files[0]) }} />
                             </label>
                           ) : sub.returned_at ? (
-                            <button
-                              onClick={() => downloadReturn(sub)}
-                              disabled={downloading === sub.id}
-                              className="flex items-center gap-2 group"
-                            >
-                              <span className="w-3 h-3 rounded-full bg-blue-500 shrink-0" />
-                              <span className="underline group-hover:no-underline">
-                                {downloading === sub.id ? 'Downloading...' : 'Download'}
-                              </span>
-                            </button>
+                            <div className="flex flex-col gap-1">
+                              <button onClick={() => downloadReturn(sub)} disabled={downloading === sub.id}
+                                className="flex items-center gap-2 group cursor-pointer">
+                                <span className="w-3 h-3 rounded-full bg-blue-500 shrink-0" />
+                                <span>{downloading === sub.id ? 'Downloading...' : 'Returned'}</span>
+                                <span className="font-mono text-gray-400 group-hover:underline">{downloading === sub.id ? '' : 'Download'}</span>
+                                {late && <span className="text-red-500">LATE</span>}
+                              </button>
+                              <span className="text-gray-400 font-normal normal-case tracking-normal">{formatDate(sub.submitted_at)}</span>
+                            </div>
                           ) : (
-                            <label className="flex items-center gap-2 cursor-pointer group">
-                              <span className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
-                              <span className="underline group-hover:no-underline">
-                                {uploading === key ? 'Uploading...' : 'Resubmit'}
-                              </span>
-                              <input
-                                type="file"
-                                className="hidden"
-                                disabled={uploading === key}
-                                onChange={e => {
-                                  if (e.target.files[0]) handleSubmit(assignment, stage, e.target.files[0])
-                                }}
-                              />
+                            <label className="flex flex-col gap-1 cursor-pointer group">
+                              <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
+                                <span>{uploading === key ? 'Uploading...' : 'Submitted'}</span>
+                                <span className="font-mono text-gray-400">{uploading === key ? '' : 'Resubmit'}</span>
+                                {late && <span className="text-red-500">LATE</span>}
+                              </div>
+                              <span className="text-gray-400 font-normal normal-case tracking-normal">{formatDate(sub.submitted_at)}</span>
+                              <input type="file" className="hidden" disabled={uploading === key}
+                                onChange={e => { if (e.target.files[0]) handleSubmit(assignment, stage, e.target.files[0]) }} />
                             </label>
                           )}
                         </td>
