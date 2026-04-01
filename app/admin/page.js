@@ -4,9 +4,12 @@ import { createClient } from '@/utils/supabase'
 import { useRouter } from 'next/navigation'
 import AdminHeader from '@/components/AdminHeader'
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSkull } from '@fortawesome/free-solid-svg-icons'
+
 const adminTiles = [
   { title: 'ANNOUNCEMENTS', description: 'Post and manage announcements', href: '/admin/announcements' },
-  { title: 'COURSES',       description: 'Manage courses and rosters',    href: '/admin/courses'       },
+  { title: 'PEOPLE',        description: 'Manage course roster',          href: '/admin/people'        },
   { title: 'ASSIGNMENTS',   description: 'Manage assignments and grades',  href: '/admin/assignments'   },
   { title: 'SYLLABUS',      description: 'Edit the course syllabus',       href: '/admin/syllabus'      },
   { title: 'CONTACT',       description: 'Edit contact information',       href: '/admin/contact'       },
@@ -49,19 +52,22 @@ export default function AdminPage() {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-black m-8">
         {adminTiles.map((tile) => (
-          <a
-            key={tile.title}
-            href={tile.href}
-            className="bg-gray-100 p-4 flex flex-col gap-1 hover:bg-black/80 hover:text-white transition-colors duration-300 group"
-          >
+          <a key={tile.title} href={tile.href}
+            className="bg-gray-100 p-4 flex flex-col gap-1 hover:bg-black/80 hover:text-white transition-colors duration-300 group">
             <h3 className="text-base font-black text-black group-hover:text-white tracking-tight uppercase">
               {tile.title}
             </h3>
-            <p className="text-xs text-gray-500 group-hover:text-gray-300">
-              {tile.description}
-            </p>
+            <p className="text-xs text-gray-500 group-hover:text-gray-300">{tile.description}</p>
           </a>
         ))}
+        <a href="/admin/delete-course"
+          className="bg-gray-100 p-4 flex flex-col gap-1 hover:bg-red-600 hover:text-white transition-colors duration-300 group">
+          <h3 className="text-base font-black text-red-600 group-hover:text-white tracking-tight uppercase flex items-center gap-2">
+            <FontAwesomeIcon icon={faSkull} className="w-4 h-4" />
+            Delete Course
+          </h3>
+          <p className="text-xs text-gray-500 group-hover:text-gray-300">Permanently remove this course</p>
+        </a>
       </div>
     </main>
   )

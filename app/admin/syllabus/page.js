@@ -55,6 +55,7 @@ export default function AdminSyllabusPage() {
   const [loading,  setLoading]  = useState(true)
   const [saving,   setSaving]   = useState(false)
   const [error,    setError]    = useState(null)
+  const [showRef, setShowRef] = useState(false)
 
   useEffect(() => {
     async function load() {

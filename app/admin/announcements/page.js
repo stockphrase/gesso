@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase'
 import { useRouter } from 'next/navigation'
 import AdminHeader from '@/components/AdminHeader'
+import { getActiveCourse } from '@/utils/course'
 
 export default function AdminAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([])
+  const [courseId, setCourseId]           = useState(null)
   const [title, setTitle]                 = useState('')
   const [body, setBody]                   = useState('')
   const [date, setDate]                   = useState('')
@@ -23,12 +25,16 @@ export default function AdminAnnouncementsPage() {
 
       const { data: profile } = await supabase
         .from('profiles').select('role').eq('id', user.id).single()
-
       if (profile?.role !== 'admin') { router.push('/dashboard'); return }
+
+      const course = getActiveCourse()
+      if (!course) { router.push('/courses'); return }
+      setCourseId(course.id)
 
       const { data } = await supabase
         .from('announcements')
         .select('*')
+        .eq('course_id', course.id)
         .order('date', { ascending: false })
 
       setAnnouncements(data || [])
@@ -51,12 +57,15 @@ export default function AdminAnnouncementsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     const { error } = await supabase
       .from('announcements')
-      .insert({ title, body, date, created_by: user.id })
+      .insert({ title, body, date, course_id: courseId, created_by: user.id })
 
     if (error) { setError(error.message); setSaving(false); return }
 
     const { data } = await supabase
-      .from('announcements').select('*').order('date', { ascending: false })
+      .from('announcements')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('date', { ascending: false })
 
     setAnnouncements(data || [])
     setTitle('')
@@ -78,10 +87,10 @@ export default function AdminAnnouncementsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-red-50">
+    <main className="min-h-screen bg-gray-100">
       <AdminHeader backHref="/admin" />
       <div className="px-8 py-10 border-b border-gray-300">
-        <p className="text-xs text-red-400 uppercase tracking-widest mb-1">Admin</p>
+        <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Admin</p>
         <h2 className="text-3xl font-black text-black tracking-tight">ANNOUNCEMENTS</h2>
       </div>
       <div className="px-8 py-8 grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -117,7 +126,7 @@ export default function AdminAnnouncementsPage() {
           ) : (
             <div className="flex flex-col gap-4">
               {announcements.map((a) => (
-                <div key={a.id} className="border border-red-200 bg-white p-4 flex items-start justify-between gap-4">
+                <div key={a.id} className="border border-gray-200 bg-white p-4 flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-mono text-gray-400 mb-1">{a.date}</p>
                     <p className="text-sm font-bold text-black">{a.title}</p>
