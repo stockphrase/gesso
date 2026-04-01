@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase'
 import { setActiveCourse, clearActiveCourse } from '@/utils/course'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faGear } from '@fortawesome/free-solid-svg-icons'
 
 export default function CoursesPage() {
   const router   = useRouter()
@@ -46,14 +48,14 @@ export default function CoursesPage() {
     )
   }
 
-function enterCourse(course) {
-  setActiveCourse(course.id, course.title)
-  if (profile?.role === 'admin') {
-    router.push('/admin')
-  } else {
-    router.push('/dashboard')
+  function enterCourse(course) {
+    setActiveCourse(course.id, course.title)
+    if (profile?.role === 'admin') {
+      router.push('/admin')
+    } else {
+      router.push('/dashboard')
+    }
   }
-}
 
   async function handleCreateCourse(e) {
     e.preventDefault()
@@ -70,7 +72,6 @@ function enterCourse(course) {
 
     if (error) { setCreateErr(error.message); setCreating(false); return }
 
-    // Auto-enroll the admin in the new course
     await supabase.from('course_memberships').insert({
       course_id: course.id,
       user_id:   user.id,
@@ -125,7 +126,6 @@ function enterCourse(course) {
           )}
         </div>
 
-        {/* New course form — admin only */}
         {showForm && (
           <form onSubmit={handleCreateCourse} className="border border-black p-6 mb-8 flex flex-col gap-4 max-w-lg">
             <input type="text" placeholder="Course title" value={newTitle}
@@ -143,21 +143,30 @@ function enterCourse(course) {
         )}
 
         {courses.length === 0 ? (
-          <p className="text-xs font-bold tracking-widest uppercase text-black">
-            No courses yet.
-          </p>
+          <p className="text-xs font-bold tracking-widest uppercase text-black">No courses yet.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-px bg-black border border-black">
             {courses.map(course => (
-              <button key={course.id} onClick={() => enterCourse(course)}
-                className="bg-white p-6 flex flex-col gap-2 hover:bg-black/80 hover:text-white transition-colors duration-300 group text-left">
-                <h3 className="text-base font-black text-black group-hover:text-white tracking-tight uppercase">
-                  {course.title}
-                </h3>
-                {course.description && (
-                  <p className="text-xs text-gray-500 group-hover:text-gray-300">{course.description}</p>
+              <div key={course.id} className="relative group">
+                <button onClick={() => enterCourse(course)}
+                  className="w-full bg-white p-6 flex flex-col gap-2 hover:bg-black/80 hover:text-white transition-colors duration-300 text-left">
+                  <h3 className="text-base font-black text-black group-hover:text-white tracking-tight uppercase">
+                    {course.title}
+                  </h3>
+                  {course.description && (
+                    <p className="text-xs text-gray-500 group-hover:text-gray-300">{course.description}</p>
+                  )}
+                </button>
+                {profile?.role === 'admin' && (
+                  <a
+                    href={`/admin/course-settings/${course.id}`}
+                    onClick={e => e.stopPropagation()}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-black p-1 transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faGear} className="w-4 h-4" />
+                  </a>
                 )}
-              </button>
+              </div>
             ))}
           </div>
         )}
