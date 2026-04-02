@@ -51,7 +51,6 @@ export async function GET(request) {
     .createSignedUrl(submission.returned_storage_path, 60)
 
  if (urlError) {
-  console.log('Storage error:', urlError)
   return Response.json({ error: urlError.message }, { status: 500 })
 }
 

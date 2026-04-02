@@ -34,8 +34,6 @@ export async function POST(request) {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // DEBUG — check this in your terminal
-  console.log('User ID:', user.id, 'Role:', profile?.role)
 
   // Parse form data
   const formData        = await request.formData()
