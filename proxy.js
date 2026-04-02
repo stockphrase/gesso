@@ -47,7 +47,20 @@ export async function proxy(request) {
       .eq('id', user.id)
       .single()
 
-    if (!profile || profile.role !== 'admin') {
+    if (!profile) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    // Tutors can only access /admin/announcements
+    if (profile.role === 'tutor') {
+      if (!request.nextUrl.pathname.startsWith('/admin/announcements')) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+      return supabaseResponse
+    }
+
+    // Everyone else who isn't admin gets bounced
+    if (profile.role !== 'admin') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

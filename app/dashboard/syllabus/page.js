@@ -24,7 +24,7 @@ export default function StudentSyllabusPage() {
 
       const { data: prof } = await supabase
         .from('profiles').select('*').eq('id', user.id).single()
-      if (!prof || prof.role !== 'student') { router.push('/dashboard'); return }
+    if (!prof || prof.role === 'admin') { router.push('/dashboard'); return }
       setProfile(prof)
 
       const { data: syllabus } = await supabase

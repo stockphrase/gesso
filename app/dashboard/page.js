@@ -5,19 +5,22 @@ import { useRouter } from 'next/navigation'
 import { getActiveCourse, clearActiveCourse } from '@/utils/course'
 
 const tiles = [
-  { title: 'SYLLABUS',      description: 'Course syllabus and schedule',        href: '/dashboard/syllabus'      },
-  { title: 'ASSIGNMENTS',   description: 'Submit and track your work',           href: '/dashboard/assignments'   },
-  { title: 'ANNOUNCEMENTS', description: 'Updates from your instructor',         href: '/dashboard/announcements' },
-  { title: 'FILES',         description: 'Course readings and materials',        href: '/dashboard/files'         },
-  { title: 'CONTACT',       description: 'Instructor contact and office hours',  href: '/dashboard/contact'       },
+  { title: 'SYLLABUS',      description: 'Course syllabus and schedule',       href: '/dashboard/syllabus'      },
+  { title: 'ASSIGNMENTS',   description: 'Submit and track your work',          href: '/dashboard/assignments'   },
+  { title: 'FILES',         description: 'Course readings and materials',       href: '/dashboard/files'         },
+  { title: 'CONTACT',       description: 'Instructor contact and office hours', href: '/dashboard/contact'       },
 ]
 
-const adminTiles = [
-  { title: 'ADMIN',         description: 'Edit and manage courses',              href: '/admin'                   },
+const studentTiles = [
+  { title: 'ANNOUNCEMENTS', description: 'Updates from your instructor',        href: '/dashboard/announcements' },
 ]
 
 const tutorTiles = [
-  { title: 'POST ANNOUNCEMENT', description: 'Post an announcement to the class', href: '/admin/announcements' },
+  { title: 'ANNOUNCEMENTS', description: 'Post and view announcements',         href: '/admin/announcements'     },
+]
+
+const adminTiles = [
+  { title: 'ADMIN',         description: 'Edit and manage courses',             href: '/admin'                   },
 ]
 
 export default function DashboardPage() {
@@ -63,10 +66,10 @@ export default function DashboardPage() {
   }
 
   const visibleTiles = profile?.role === 'admin'
-    ? [...tiles, ...adminTiles]
+    ? [...tiles, ...studentTiles, ...adminTiles]
     : profile?.role === 'tutor'
     ? [...tiles, ...tutorTiles]
-    : tiles
+    : [...tiles, ...studentTiles]
 
   return (
     <main className="min-h-screen bg-white">
@@ -93,7 +96,7 @@ export default function DashboardPage() {
           <a
             key={tile.title}
             href={tile.href}
-            className={`p-4 flex flex-col gap-1 hover:bg-black hover:text-white transition-colors group ${
+            className={`p-4 flex flex-col gap-1 hover:bg-black/80 hover:text-white transition-colors duration-300 group ${
               tile.title === 'ADMIN' ? 'bg-red-600' : 'bg-white'
             }`}
           >
