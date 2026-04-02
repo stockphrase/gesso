@@ -25,17 +25,20 @@ export default function FilesPage() {
 
       const { data: prof } = await supabase
         .from('profiles').select('*').eq('id', user.id).single()
-      if (!prof || prof.role !== 'student') { router.push('/dashboard'); return }
+      if (!prof || prof.role === 'admin') { router.push('/dashboard'); return }
       setProfile(prof)
 
       const course = getActiveCourse()
       if (!course) { router.push('/courses'); return }
 
+      // Tutors see level 1+2, students see level 1 only
+      const maxLevel = prof.role === 'tutor' ? 2 : 1
+
       const { data: folderData } = await supabase
         .from('file_folders')
         .select('*')
         .eq('course_id', course.id)
-        .eq('permission_level', 1)
+        .lte('permission_level', maxLevel)
         .order('name')
 
       setFolders(folderData || [])

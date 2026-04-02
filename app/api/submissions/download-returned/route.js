@@ -31,7 +31,7 @@ export async function GET(request) {
   const { data: profile } = await supabase
     .from('profiles').select('role').eq('id', user.id).single()
 
-  if (profile?.role !== 'admin' && profile?.role !== 'tutor') {
+  if (!profile || (profile.role !== 'admin' && profile.role !== 'tutor')) {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -39,22 +39,25 @@ export async function GET(request) {
     .from('submissions')
     .select('*')
     .eq('id', submissionId)
+    .not('returned_storage_path', 'is', null)
     .single()
 
   if (error || !submission) {
-    return Response.json({ error: 'Submission not found' }, { status: 404 })
+    return Response.json({ error: 'Returned file not found' }, { status: 404 })
   }
 
   const { data: signedUrl, error: urlError } = await supabase.storage
     .from('course-files')
-    .createSignedUrl(submission.storage_path, 60)
+    .createSignedUrl(submission.returned_storage_path, 60)
 
-  if (urlError) {
-    return Response.json({ error: 'Could not generate download link' }, { status: 500 })
-  }
+ if (urlError) {
+  console.log('Storage error:', urlError)
+  return Response.json({ error: urlError.message }, { status: 500 })
+}
 
   return Response.json({
     url:      signedUrl.signedUrl,
-    filename: submission.filename,
+    filename: submission.returned_filename,
   })
 }
+

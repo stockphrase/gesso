@@ -4,40 +4,39 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase'
 import { useRouter } from 'next/navigation'
 import AdminHeader from '@/components/AdminHeader'
+import Header from '@/components/Header'
 import { getActiveCourse } from '@/utils/course'
 
-export default function AdminAnnouncementsPage() {
+export default function AnnouncementsPostPage() {
   const [announcements, setAnnouncements] = useState([])
-  const [courseId, setCourseId]           = useState(null)
-  const [title, setTitle]                 = useState('')
-  const [body, setBody]                   = useState('')
-  const [date, setDate]                   = useState('')
-  const [error, setError]                 = useState(null)
-  const [loading, setLoading]             = useState(true)
-  const [saving, setSaving]               = useState(false)
-  const router                            = useRouter()
-  const supabase                          = createClient()
+  const [courseId,      setCourseId]      = useState(null)
+  const [profile,       setProfile]       = useState(null)
+  const [title,         setTitle]         = useState('')
+  const [body,          setBody]          = useState('')
+  const [date,          setDate]          = useState('')
+  const [error,         setError]         = useState(null)
+  const [loading,       setLoading]       = useState(true)
+  const [saving,        setSaving]        = useState(false)
+  const router   = useRouter()
+  const supabase = createClient()
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
 
-      const { data: profile } = await supabase
-        .from('profiles').select('role').eq('id', user.id).single()
-      if (profile?.role !== 'admin') { router.push('/dashboard'); return }
+      const { data: prof } = await supabase
+        .from('profiles').select('*').eq('id', user.id).single()
+      if (!prof || (prof.role !== 'admin' && prof.role !== 'tutor')) {
+        router.push('/dashboard'); return
+      }
+      setProfile(prof)
 
       const course = getActiveCourse()
       if (!course) { router.push('/courses'); return }
       setCourseId(course.id)
 
-      const { data } = await supabase
-        .from('announcements')
-        .select('*')
-        .eq('course_id', course.id)
-        .order('date', { ascending: false })
-
-      setAnnouncements(data || [])
+      await loadAnnouncements(course.id)
 
       const today = new Date()
       const yyyy  = today.getFullYear()
@@ -48,6 +47,15 @@ export default function AdminAnnouncementsPage() {
     }
     load()
   }, [])
+
+  async function loadAnnouncements(cid) {
+    const { data } = await supabase
+      .from('announcements')
+      .select('*, profiles(name, role)')
+      .eq('course_id', cid)
+      .order('date', { ascending: false })
+    setAnnouncements(data || [])
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -61,13 +69,7 @@ export default function AdminAnnouncementsPage() {
 
     if (error) { setError(error.message); setSaving(false); return }
 
-    const { data } = await supabase
-      .from('announcements')
-      .select('*')
-      .eq('course_id', courseId)
-      .order('date', { ascending: false })
-
-    setAnnouncements(data || [])
+    await loadAnnouncements(courseId)
     setTitle('')
     setBody('')
     setSaving(false)
@@ -86,11 +88,19 @@ export default function AdminAnnouncementsPage() {
     )
   }
 
+  const isAdmin = profile?.role === 'admin'
+  const HeaderComponent = isAdmin ? AdminHeader : Header
+  const headerProps = isAdmin
+    ? { backHref: '/admin' }
+    : { backHref: '/dashboard' }
+
   return (
-    <main className="min-h-screen bg-gray-100">
-      <AdminHeader backHref="/admin" />
+    <main className={`min-h-screen ${isAdmin ? 'bg-gray-100' : 'bg-white'}`}>
+      <HeaderComponent {...headerProps} name={profile?.name} />
       <div className="px-8 py-10 border-b border-gray-300">
-        <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Admin</p>
+        <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">
+          {isAdmin ? 'Admin' : 'Tutor'}
+        </p>
         <h2 className="text-3xl font-black text-black tracking-tight">ANNOUNCEMENTS</h2>
       </div>
       <div className="px-8 py-8 grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -131,11 +141,18 @@ export default function AdminAnnouncementsPage() {
                     <p className="text-xs font-mono text-gray-400 mb-1">{a.date}</p>
                     <p className="text-sm font-bold text-black">{a.title}</p>
                     <p className="text-sm text-gray-600 mt-1 line-clamp-2">{a.body}</p>
+                    {a.profiles && (
+                      <p className="text-xs text-gray-400 mt-2 uppercase tracking-widest">
+                        — {a.profiles.name} ({a.profiles.role === 'admin' ? 'Teacher' : 'Tutor'})
+                      </p>
+                    )}
                   </div>
-                  <button onClick={() => handleDelete(a.id)}
-                    className="text-xs text-red-500 hover:text-red-700 font-bold shrink-0">
-                    DELETE
-                  </button>
+                  {isAdmin && (
+                    <button onClick={() => handleDelete(a.id)}
+                      className="text-xs text-red-500 hover:text-red-700 font-bold shrink-0">
+                      DELETE
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

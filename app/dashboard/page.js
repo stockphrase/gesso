@@ -13,7 +13,11 @@ const tiles = [
 ]
 
 const adminTiles = [
-  { title: 'ADMIN',         description: 'Edit and manage course',              href: '/admin'                   },
+  { title: 'ADMIN',         description: 'Edit and manage courses',              href: '/admin'                   },
+]
+
+const tutorTiles = [
+  { title: 'POST ANNOUNCEMENT', description: 'Post an announcement to the class', href: '/admin/announcements' },
 ]
 
 export default function DashboardPage() {
@@ -60,6 +64,8 @@ export default function DashboardPage() {
 
   const visibleTiles = profile?.role === 'admin'
     ? [...tiles, ...adminTiles]
+    : profile?.role === 'tutor'
+    ? [...tiles, ...tutorTiles]
     : tiles
 
   return (
@@ -87,7 +93,7 @@ export default function DashboardPage() {
           <a
             key={tile.title}
             href={tile.href}
-            className={`p-4 flex flex-col gap-1 hover:bg-black/60 hover:text-white transition-colors duration-700 group ${
+            className={`p-4 flex flex-col gap-1 hover:bg-black hover:text-white transition-colors group ${
               tile.title === 'ADMIN' ? 'bg-red-600' : 'bg-white'
             }`}
           >
