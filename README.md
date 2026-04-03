@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Gesso
 
-## Getting Started
+**Painting over Canvas** — A minimal course management platform for professors.
 
-First, run the development server:
+Gesso replaces bloated LMS platforms like Canvas with a clean, fast, invitation-only alternative built for small writing courses and seminars.
+
+## Stack
+
+Next.js 16 · Tailwind CSS · Supabase (PostgreSQL + Auth + Storage) · JSZip · Vercel
+
+## Setup
+
+```bash
+git clone https://github.com/stockphrase/gesso.git
+cd gesso
+npm install
+```
+
+Create `.env.local`:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Roles
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+**Admin (Professor)** — creates courses, manages roster, uploads files via ZIP, creates assignments with draft stages and due dates, downloads and returns student submissions, edits syllabus and contact info.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Tutor** — accesses level 1+2 course files, downloads student submissions, bulk-downloads returned work as ZIP, posts announcements stamped with name and role.
 
-## Learn More
+**Student** — submits assignment drafts, tracks submission status, downloads returned work, views course files, syllabus, announcements, and contact info.
 
-To learn more about Next.js, take a look at the following resources:
+## Registration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Invitation only. Add emails via the admin People page or directly in Supabase:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```sql
+INSERT INTO allowed_emails (email, role, course_id)
+VALUES ('professor@university.edu', 'admin', NULL);
+```
 
-## Deploy on Vercel
+## Design
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Black and white. No clutter. Grid-based tile navigation. Red accent for admin UI. Inspired by [shape.work](https://shape.work).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Live
+
+[gesso.no-silo.com](https://gesso.no-silo.com)
