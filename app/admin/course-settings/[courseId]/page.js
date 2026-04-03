@@ -6,6 +6,14 @@ import { createClient } from '@/utils/supabase'
 import AdminHeader from '@/components/AdminHeader'
 import { clearActiveCourse } from '@/utils/course'
 
+function formatDate(ts) {
+  if (!ts) return '—'
+  return new Date(ts).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  })
+}
+
 export default function CourseSettingsPage() {
   const router   = useRouter()
   const params   = useParams()
@@ -16,6 +24,7 @@ export default function CourseSettingsPage() {
   const [loading,     setLoading]     = useState(true)
   const [confirm,     setConfirm]     = useState('')
   const [deleting,    setDeleting]    = useState(false)
+  const [exporting,   setExporting]   = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -35,6 +44,85 @@ export default function CourseSettingsPage() {
     }
     load()
   }, [])
+
+  async function handleExport() {
+    setExporting(true)
+    try {
+      // Load all data needed for the export
+      const { data: memberships } = await supabase
+        .from('course_memberships')
+        .select('user_id, role')
+        .eq('course_id', params.courseId)
+        .eq('role', 'student')
+
+      const userIds = memberships?.map(m => m.user_id) || []
+
+      const { data: students } = userIds.length > 0
+        ? await supabase.from('profiles').select('id, name, email').in('id', userIds)
+        : { data: [] }
+
+      const { data: assignments } = await supabase
+        .from('assignments')
+        .select('id, title, draft_stages, due_dates')
+        .eq('course_id', params.courseId)
+        .order('position')
+
+      const { data: submissions } = await supabase
+        .from('submissions')
+        .select('*')
+        .in('assignment_id', assignments?.map(a => a.id) || [])
+
+      // Build CSV rows
+      const rows = [
+        ['Course', 'Student', 'Email', 'Assignment', 'Stage', 'Submitted', 'Submitted At', 'Late', 'Returned', 'Returned At']
+      ]
+
+      for (const student of (students || [])) {
+        for (const assignment of (assignments || [])) {
+          for (const stage of assignment.draft_stages) {
+            const sub = submissions?.find(
+              s => s.user_id === student.id &&
+                   s.assignment_id === assignment.id &&
+                   s.draft_stage === stage
+            )
+            const dueDate = assignment.due_dates?.[stage]
+            const late = sub?.submitted_at && dueDate
+              ? new Date(sub.submitted_at) > new Date(dueDate) ? 'Yes' : 'No'
+              : '—'
+
+            rows.push([
+              course.title,
+              student.name,
+              student.email,
+              assignment.title,
+              stage,
+              sub ? 'Yes' : 'No',
+              sub ? formatDate(sub.submitted_at) : '—',
+              late,
+              sub?.returned_at ? 'Yes' : 'No',
+              sub?.returned_at ? formatDate(sub.returned_at) : '—',
+            ])
+          }
+        }
+      }
+
+      // Convert to CSV string
+      const csv = rows.map(row =>
+        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ).join('\n')
+
+      // Download
+      const blob    = new Blob([csv], { type: 'text/csv' })
+      const blobUrl = URL.createObjectURL(blob)
+      const a       = document.createElement('a')
+      a.href        = blobUrl
+      a.download    = `${course.title.replace(/\s+/g, '_')}_records.csv`
+      a.click()
+      URL.revokeObjectURL(blobUrl)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   async function handleDelete() {
     if (confirm !== course.title) return
@@ -70,6 +158,23 @@ export default function CourseSettingsPage() {
         <h1 className="text-xs font-bold tracking-widest uppercase text-black mb-2">Course Settings</h1>
         <p className="text-2xl font-black text-black tracking-tight mb-12">{course.title}</p>
 
+        {/* Export records */}
+        <div className="border border-black p-6 flex flex-col gap-4 mb-8">
+          <p className="text-xs font-bold tracking-widest uppercase text-black">Export Records</p>
+          <p className="text-sm text-black">
+            Download a CSV of all student submissions, timestamps, and return status for this course.
+            Recommended before deleting.
+          </p>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="border border-black text-black p-3 text-xs font-bold tracking-widest uppercase hover:bg-black hover:text-white transition-colors disabled:opacity-50"
+          >
+            {exporting ? 'Exporting...' : '↓ Download Records (.csv)'}
+          </button>
+        </div>
+
+        {/* Danger zone */}
         <div className="border border-red-600 p-6 flex flex-col gap-4">
           <p className="text-xs font-bold tracking-widest uppercase text-red-600">Danger Zone</p>
           <p className="text-sm text-black">
