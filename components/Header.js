@@ -1,5 +1,4 @@
 'use client'
-
 import { useRouter } from 'next/navigation'
 import { clearActiveCourse, getActiveCourse } from '@/utils/course'
 import { useEffect, useState } from 'react'
@@ -19,31 +18,31 @@ export default function Header({ backHref = '/dashboard', name = '', showBack = 
   }
 
   return (
-    <header className="border-b border-black px-8 py-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-black tracking-tight text-black">GESSO</h1>
+    <header className="border-b border-black px-4 md:px-8 py-4 flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <h1 className="text-xl md:text-2xl font-black tracking-tight text-black">GESSO</h1>
         {courseName && (
-          <span className="text-xs font-bold tracking-widest uppercase text-gray-400">{courseName}</span>
+          <span className="text-xs font-bold tracking-widest uppercase text-gray-400 hidden sm:inline">
+            {courseName}
+          </span>
         )}
       </div>
-      <div className="flex items-center gap-4">
-        {name && <span className="text-sm text-gray-600">{name}</span>}
-        <button
-          onClick={handleSwitchCourse}
-          className="text-sm font-bold text-black border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors"
-        >
-          Switch Course
+      <div className="flex items-center gap-2 flex-wrap justify-end">
+        {name && <span className="text-xs text-gray-600 hidden md:inline">{name}</span>}
+        <button onClick={handleSwitchCourse}
+          className="text-xs font-bold text-black border border-black px-2 py-1 md:px-4 md:py-2 hover:bg-black hover:text-white transition-colors whitespace-nowrap">
+          Switch
         </button>
         {showBack && (
           onBack ? (
             <button onClick={onBack}
-              className="text-sm font-bold text-black border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors">
-              BACK
+              className="text-xs font-bold text-black border border-black px-2 py-1 md:px-4 md:py-2 hover:bg-black hover:text-white transition-colors">
+              Back
             </button>
           ) : (
             <a href={backHref}
-              className="text-sm font-bold text-black border border-black px-4 py-2 hover:bg-black hover:text-white transition-colors">
-              BACK
+              className="text-xs font-bold text-black border border-black px-2 py-1 md:px-4 md:py-2 hover:bg-black hover:text-white transition-colors">
+              Back
             </a>
           )
         )}
