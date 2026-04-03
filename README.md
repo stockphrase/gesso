@@ -103,8 +103,4 @@ Sensitive credentials are stored as environment variables and never committed to
 
 Black and white. No clutter. Grid-based tile navigation. Red accent for admin UI. Inspired by [shape.work](https://shape.work).
 
----
 
-## Live
-
-[gesso.no-silo.com](https://gesso.no-silo.com)
