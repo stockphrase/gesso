@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
 export async function POST(request) {
   const cookieStore = await cookies()
 
@@ -41,6 +43,11 @@ export async function POST(request) {
     return Response.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
+  // File size check
+  if (file.size > MAX_FILE_SIZE) {
+    return Response.json({ error: 'File too large. Maximum size is 10MB.' }, { status: 400 })
+  }
+
   const filename    = file.name
   const arrayBuffer = await file.arrayBuffer()
   const storagePath = `submissions/${assignmentId}/${user.id}/${draftStage}/${filename}`
@@ -71,7 +78,6 @@ export async function POST(request) {
         submitted_at: new Date().toISOString(),
       })
       .eq('id', existing.id)
-
     if (error) return Response.json({ error: error.message }, { status: 500 })
   } else {
     const { error } = await supabase
@@ -84,7 +90,6 @@ export async function POST(request) {
         storage_path:  storagePath,
         submitted_at:  new Date().toISOString(),
       })
-
     if (error) return Response.json({ error: error.message }, { status: 500 })
   }
 

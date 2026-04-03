@@ -268,12 +268,15 @@ export default function AssignmentsPage() {
     fd.append('draft_stage', stage)
     const res  = await fetch('/api/submissions/submit', { method: 'POST', body: fd })
     const data = await res.json()
+    
     if (data.success) {
-      const { data: { user } } = await supabase.auth.getUser()
-      const { data: subs } = await supabase.from('submissions').select('*').eq('user_id', user.id)
-      setSubmissions(subs || [])
-    }
-    setUploading(null)
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: subs } = await supabase.from('submissions').select('*').eq('user_id', user.id)
+    setSubmissions(subs || [])
+} else {
+  alert(data.error || 'Upload failed. Please try again.')
+}
+setUploading(null)
   }
 
   async function downloadReturn(sub) {
