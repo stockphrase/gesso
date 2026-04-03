@@ -3,6 +3,22 @@ import { useState } from 'react'
 import { createClient } from '@/utils/supabase'
 import { useRouter } from 'next/navigation'
 
+function getPasswordStrength(password) {
+  if (!password) return { score: 0, label: '', color: '' }
+  let score = 0
+  if (password.length >= 8)  score++
+  if (password.length >= 12) score++
+  if (/[A-Z]/.test(password)) score++
+  if (/[0-9]/.test(password)) score++
+  if (/[^A-Za-z0-9]/.test(password)) score++
+
+  if (score <= 1) return { score, label: 'Weak',      color: 'bg-red-500'    }
+  if (score <= 2) return { score, label: 'Fair',      color: 'bg-orange-400' }
+  if (score <= 3) return { score, label: 'Good',      color: 'bg-yellow-400' }
+  if (score <= 4) return { score, label: 'Strong',    color: 'bg-green-400'  }
+  return              { score, label: 'Very Strong', color: 'bg-green-600'  }
+}
+
 export default function RegisterPage() {
   const [email,    setEmail]    = useState('')
   const [name,     setName]     = useState('')
@@ -12,10 +28,18 @@ export default function RegisterPage() {
   const router   = useRouter()
   const supabase = createClient()
 
+  const strength = getPasswordStrength(password)
+
   async function handleRegister(e) {
     e.preventDefault()
     setLoading(true)
     setError(null)
+
+    if (strength.score < 4) {
+      setError('Please choose a stronger password.')
+      setLoading(false)
+      return
+    }
 
     // Check if email is on any allowed list
     const { data: allowed } = await supabase
@@ -56,9 +80,33 @@ export default function RegisterPage() {
           <input type="email" placeholder="Email" value={email}
             onChange={e => setEmail(e.target.value)} required
             className="border border-black p-3 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black" />
-          <input type="password" placeholder="Password (min 8 characters)" value={password}
-            onChange={e => setPassword(e.target.value)} required
-            className="border border-black p-3 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black" />
+          <div className="flex flex-col gap-2">
+            <input type="password" placeholder="Password" value={password}
+              onChange={e => setPassword(e.target.value)} required
+              className="border border-black p-3 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black" />
+            {password.length > 0 && (
+              <div className="flex flex-col gap-1">
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+                      i <= strength.score ? strength.color : 'bg-gray-200'
+                    }`} />
+                  ))}
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className="text-xs text-gray-500">
+                    Use 12+ characters, uppercase, numbers, and symbols
+                  </p>
+                  <p className={`text-xs font-bold tracking-widest uppercase ${
+                    strength.score <= 2 ? 'text-red-500' : 
+                    strength.score <= 3 ? 'text-yellow-500' : 'text-green-600'
+                  }`}>
+                    {strength.label}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <button type="submit" disabled={loading}
             className="bg-black text-white p-3 font-bold hover:bg-gray-800 transition-colors disabled:opacity-50">
