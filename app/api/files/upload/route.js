@@ -44,6 +44,10 @@ export async function POST(request) {
   if (!file || !courseId || !permissionLevel) {
     return Response.json({ error: 'Missing required fields' }, { status: 400 })
   }
+  
+  if (file.size > 40 * 1024 * 1024) {
+  return Response.json({ error: 'ZIP file too large. Maximum size is 40MB.' }, { status: 400 })
+}
 
   // Read zip
   const arrayBuffer = await file.arrayBuffer()
