@@ -448,6 +448,12 @@ export default function AssignmentsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-orange-500 shrink-0" />
+                <span className="text-xs font-bold tracking-widest uppercase">
+                  Overdue
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
                 <span className="text-xs font-bold tracking-widest uppercase">
                   Submitted
@@ -531,6 +537,8 @@ export default function AssignmentsPage() {
                             assignment.draft_stages.includes(stage);
                           const due = assignment.due_dates?.[stage];
                           const late = sub && isLate(sub.submitted_at, due);
+                          const overdue =
+                            !sub && due && new Date() > new Date(due);
 
                           if (!isStage) {
                             return (
