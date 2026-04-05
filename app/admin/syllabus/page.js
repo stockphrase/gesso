@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/utils/supabase'
-import AdminHeader from '@/components/AdminHeader'
-import { marked } from 'marked'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase";
+import AdminHeader from "@/components/AdminHeader";
+import { marked } from "marked";
 
-import { getActiveCourse } from '@/utils/course'
+import { getActiveCourse } from "@/utils/course";
 
 const TEMPLATE = `# Course Title
 
@@ -41,86 +41,104 @@ Use this as a guide while editing, then delete it before saving.
 1. Numbered list item — \`1. item\`
 | Column 1 | Column 2 | — table (see schedule above for example)
 \`---\` — horizontal rule divider
-`
+`;
 
 export default function AdminSyllabusPage() {
-  const router   = useRouter()
-  const supabase = createClient()
+  const router = useRouter();
+  const supabase = createClient();
 
-  const [profile,  setProfile]  = useState(null)
-  const [courseId, setCourseId] = useState(null)
-  const [content,  setContent]  = useState('')
-  const [editing,  setEditing]  = useState(false)
-  const [exists,   setExists]   = useState(false)
-  const [loading,  setLoading]  = useState(true)
-  const [saving,   setSaving]   = useState(false)
-  const [error,    setError]    = useState(null)
-  const [showRef, setShowRef] = useState(true)
+  const [profile, setProfile] = useState(null);
+  const [courseId, setCourseId] = useState(null);
+  const [content, setContent] = useState("");
+  const [editing, setEditing] = useState(false);
+  const [exists, setExists] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [showRef, setShowRef] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
-
-      const { data: prof } = await supabase
-        .from('profiles').select('*').eq('id', user.id).single()
-
-      if (prof?.role !== 'admin') { router.push('/dashboard'); return }
-      setProfile(prof)
-
-      const course = getActiveCourse()
-      if (!course) { router.push('/courses'); return }
-      setCourseId(course.id)
-
-      const { data: syllabus } = await supabase
-        .from('syllabi')
-        .select('content')
-        .eq('course_id', course.id)
-        .maybeSingle()
-
-      if (syllabus) {
-        setContent(syllabus.content)
-        setExists(true)
-        setEditing(false)
-      } else {
-        setContent(TEMPLATE)
-        setEditing(true)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
       }
 
-      setLoading(false)
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (prof?.role !== "admin") {
+        router.push("/dashboard");
+        return;
+      }
+      setProfile(prof);
+
+      const course = getActiveCourse();
+      if (!course) {
+        router.push("/courses");
+        return;
+      }
+      setCourseId(course.id);
+
+      const { data: syllabus } = await supabase
+        .from("syllabi")
+        .select("content")
+        .eq("course_id", course.id)
+        .maybeSingle();
+
+      if (syllabus) {
+        setContent(syllabus.content);
+        setExists(true);
+        setEditing(false);
+      } else {
+        setContent(TEMPLATE);
+        setEditing(true);
+      }
+
+      setLoading(false);
     }
-    load()
-  }, [])
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSave() {
-    setSaving(true)
-    setError(null)
+    setSaving(true);
+    setError(null);
 
-    const { error: upsertError } = await supabase
-      .from('syllabi')
-      .upsert({
-        course_id:  courseId,
+    const { error: upsertError } = await supabase.from("syllabi").upsert(
+      {
+        course_id: courseId,
         content,
         updated_at: new Date().toISOString(),
-      }, { onConflict: 'course_id' })
+      },
+      { onConflict: "course_id" },
+    );
 
     if (upsertError) {
-      setError(upsertError.message)
-      setSaving(false)
-      return
+      setError(upsertError.message);
+      setSaving(false);
+      return;
     }
 
-    setExists(true)
-    setEditing(false)
-    setSaving(false)
+    setExists(true);
+    setEditing(false);
+    setSaving(false);
   }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="text-black font-bold tracking-widest uppercase">Loading...</p>
+        <p className="text-black font-bold tracking-widest uppercase">
+          Loading...
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -156,52 +174,76 @@ export default function AdminSyllabusPage() {
                 onClick={() => setShowRef(!showRef)}
                 className="w-full px-4 py-2 text-xs font-bold tracking-widest uppercase text-left hover:bg-black hover:text-white transition-colors"
               >
-                {showRef ? '▲' : '▼'} Markdown Reference
+                {showRef ? "▲" : "▼"} Markdown Reference
               </button>
               {showRef && (
                 <table className="w-full text-xs border-t border-black">
                   <thead>
                     <tr className="border-b border-black">
-                      <th className="text-left p-3 border-r border-black font-bold tracking-widest uppercase w-1/2">You type</th>
-                      <th className="text-left p-3 font-bold tracking-widest uppercase w-1/2">You get</th>
+                      <th className="text-left p-3 border-r border-black font-bold tracking-widest uppercase w-1/2">
+                        You type
+                      </th>
+                      <th className="text-left p-3 font-bold tracking-widest uppercase w-1/2">
+                        You get
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b border-black">
-                      <td className="p-3 border-r border-black font-mono bg-gray-50">**bold**</td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        **bold**
+                      </td>
                       <td className="p-3 font-bold">bold</td>
                     </tr>
                     <tr className="border-b border-black">
-                      <td className="p-3 border-r border-black font-mono bg-gray-50">*italic*</td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        *italic*
+                      </td>
                       <td className="p-3 italic">italic</td>
                     </tr>
                     <tr className="border-b border-black">
-                      <td className="p-3 border-r border-black font-mono bg-gray-50"># Heading 1</td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        # Heading 1
+                      </td>
                       <td className="p-3 text-xl font-black">Heading 1</td>
                     </tr>
                     <tr className="border-b border-black">
-                      <td className="p-3 border-r border-black font-mono bg-gray-50">## Heading 2</td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        ## Heading 2
+                      </td>
                       <td className="p-3 text-lg font-bold">Heading 2</td>
                     </tr>
                     <tr className="border-b border-black">
-                      <td className="p-3 border-r border-black font-mono bg-gray-50">### Heading 3</td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        ### Heading 3
+                      </td>
                       <td className="p-3 text-base font-bold">Heading 3</td>
                     </tr>
                     <tr className="border-b border-black">
-                      <td className="p-3 border-r border-black font-mono bg-gray-50">[Link](https://...)</td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        [Link](https://...)
+                      </td>
                       <td className="p-3 underline">Link</td>
                     </tr>
                     <tr className="border-b border-black">
-                      <td className="p-3 border-r border-black font-mono bg-gray-50">- item</td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        - item
+                      </td>
                       <td className="p-3">• item</td>
                     </tr>
                     <tr className="border-b border-black">
-                      <td className="p-3 border-r border-black font-mono bg-gray-50">1. item</td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        1. item
+                      </td>
                       <td className="p-3">1. item</td>
                     </tr>
                     <tr>
-                      <td className="p-3 border-r border-black font-mono bg-gray-50">---</td>
-                      <td className="p-3"><hr className="border-black w-16" /></td>
+                      <td className="p-3 border-r border-black font-mono bg-gray-50">
+                        ---
+                      </td>
+                      <td className="p-3">
+                        <hr className="border-black w-16" />
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -210,7 +252,7 @@ export default function AdminSyllabusPage() {
 
             <textarea
               value={content}
-              onChange={e => setContent(e.target.value)}
+              onChange={(e) => setContent(e.target.value)}
               rows={24}
               placeholder="Write your syllabus in Markdown..."
               className="border border-black p-4 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-black resize-y w-full"
@@ -222,7 +264,7 @@ export default function AdminSyllabusPage() {
                 disabled={saving}
                 className="bg-black text-white px-6 py-3 text-xs font-bold tracking-widest uppercase hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? "Saving..." : "Save"}
               </button>
               {exists && (
                 <button
@@ -242,5 +284,5 @@ export default function AdminSyllabusPage() {
         )}
       </main>
     </div>
-  )
+  );
 }
