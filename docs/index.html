@@ -38,7 +38,6 @@
       margin: 0 auto;
     }
 
-    /* Hero */
     .hero {
       padding: 80px 48px 64px;
       border-bottom: 0.5px solid var(--border);
@@ -90,7 +89,6 @@
     }
     .btn-filled:hover { opacity: 0.85; background: var(--text-primary); }
 
-    /* Sections */
     .section {
       padding: 56px 48px;
       border-bottom: 0.5px solid var(--border);
@@ -104,7 +102,6 @@
       margin-bottom: 32px;
     }
 
-    /* Features */
     .feature-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -127,7 +124,6 @@
       line-height: 1.6;
     }
 
-    /* Roles */
     .role-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -155,7 +151,6 @@
     }
     .role-item:last-child { border-bottom: none; }
 
-    /* Stack */
     .stack-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -176,7 +171,25 @@
       color: var(--text-tertiary);
     }
 
-    /* Closing */
+    .manifesto {
+      padding: 56px 48px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .manifesto-body {
+      max-width: 600px;
+    }
+    .manifesto-body p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+    .manifesto-body p:last-child { margin-bottom: 0; }
+    .manifesto-body strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
     .closing {
       padding: 72px 48px;
       border-bottom: 0.5px solid var(--border);
@@ -189,7 +202,6 @@
     }
     .big-tagline span { color: var(--text-tertiary); }
 
-    /* Footer */
     .footer {
       padding: 36px 48px;
       display: flex;
@@ -208,7 +220,7 @@
     .footer-link:hover { color: var(--text-primary); }
 
     @media (max-width: 600px) {
-      .hero, .section, .closing { padding: 48px 24px; }
+      .hero, .section, .manifesto, .closing { padding: 48px 24px; }
       .role-grid { grid-template-columns: 1fr; }
       .footer { padding: 32px 24px; }
       .wordmark { font-size: 36px; }
@@ -221,7 +233,7 @@
   <div class="hero">
     <div class="wordmark">Gesso</div>
     <div class="tagline">Erase Your Canvas</div>
-    <p class="hero-desc">A clean, minimal course management platform for writing instructors. Built to replace Canvas and Google Classroom with something that actually gets out of the way.</p>
+    <p class="hero-desc">A clean, minimal course management platform for writing instructors. Built to replace Canvas LMS.</p>
     <div class="hero-links">
       <a href="https://gesso.no-silo.com" class="btn btn-filled">Open App</a>
       <a href="https://github.com/stockphrase/gesso" class="btn">View on GitHub</a>
@@ -262,7 +274,7 @@
     <div class="section-label">Roles</div>
     <div class="role-grid">
       <div class="role-card">
-        <div class="role-name">Admin</div>
+        <div class="role-name">Teacher</div>
         <div class="role-item">Create and manage assignments</div>
         <div class="role-item">View all submissions</div>
         <div class="role-item">Return marked work</div>
@@ -296,11 +308,21 @@
     </div>
   </div>
 
+  <div class="manifesto">
+    <div class="section-label">Why we built this</div>
+    <div class="manifesto-body">
+      <p>Instructure, the company behind Canvas LMS, treats the classroom as a data asset. Student essays, instructor feedback, emails, grades, and behavioral patterns — the full texture of academic life — are collected, analyzed, and monetized as what researchers call <strong>behavioral surplus</strong>: raw material extracted from learning and sold to third parties.</p>
+      <p>We believe this is wrong. A student's writing belongs to the student. A teacher's commentary belongs to the teacher. The rhythms of a classroom — who submitted late, who revised, who asked for help — are not raw materials to be mined.</p>
+      <p>Gesso was built on a simple premise: <strong>the tools we use to teach should serve teaching, not surveil it.</strong> No behavioral tracking. No data brokering. No third-party monetization. Just a clean surface for the work.</p>
+    </div>
+  </div>
+
   <div class="closing">
     <div class="big-tagline">A fresh surface.<br><span>Start from scratch.</span></div>
   </div>
 
   <div class="footer">
+    <div class="footer-left">Gesso — built at Dartmouth College</div>
     <div class="footer-links">
       <a href="https://gesso.no-silo.com" class="footer-link">App</a>
       <a href="https://github.com/stockphrase/gesso" class="footer-link">GitHub</a>
@@ -308,6 +330,4 @@
   </div>
 
 </body>
-</html># Markdown
-
-
+</html>
