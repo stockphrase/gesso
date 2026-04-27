@@ -1,0 +1,1114 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gesso — Installation Manual</title>
+        <meta
+            name="description"
+            content="Step-by-step installation manual for Gesso, a clean course management platform for writing instructors."
+        />
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            :root {
+                --text-primary: #0a0a0a;
+                --text-secondary: #444;
+                --text-tertiary: #999;
+                --border: #e0e0e0;
+                --bg: #fff;
+                --bg-secondary: #f7f7f5;
+                --code-bg: #f4f2ed;
+                --code-text: #1a1a1a;
+                --accent: #b04a2f;
+                --font:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                --mono:
+                    ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Mono",
+                    monospace;
+            }
+
+            [data-theme="dark"] {
+                --text-primary: #f0f0f0;
+                --text-secondary: #aaa;
+                --text-tertiary: #666;
+                --border: #2a2a2a;
+                --bg: #111;
+                --bg-secondary: #1a1a1a;
+                --code-bg: #1a1a1a;
+                --code-text: #e0e0e0;
+                --accent: #d96a4f;
+            }
+
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                font-family: var(--font);
+                background: var(--bg);
+                color: var(--text-primary);
+                line-height: 1.6;
+                max-width: 900px;
+                margin: 0 auto;
+                transition:
+                    background 0.2s,
+                    color 0.2s;
+            }
+
+            /* === HEADER === */
+            .page-header {
+                padding: 48px 48px 32px;
+                border-bottom: 0.5px solid var(--border);
+                position: relative;
+            }
+            .breadcrumb {
+                font-size: 12px;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--text-tertiary);
+                margin-bottom: 24px;
+            }
+            .breadcrumb a {
+                color: var(--text-tertiary);
+                text-decoration: none;
+                transition: color 0.15s;
+            }
+            .breadcrumb a:hover {
+                color: var(--text-primary);
+            }
+            .breadcrumb .sep {
+                margin: 0 10px;
+                opacity: 0.5;
+            }
+            .page-title {
+                font-size: 40px;
+                font-weight: 500;
+                letter-spacing: -0.8px;
+                color: var(--text-primary);
+                margin-bottom: 8px;
+            }
+            .page-subtitle {
+                font-size: 12px;
+                font-weight: 400;
+                letter-spacing: 0.18em;
+                color: var(--text-tertiary);
+                text-transform: uppercase;
+            }
+            .page-desc {
+                font-size: 16px;
+                color: var(--text-secondary);
+                line-height: 1.7;
+                max-width: 600px;
+                margin-top: 24px;
+            }
+
+            .theme-toggle {
+                position: absolute;
+                top: 32px;
+                right: 48px;
+                font-size: 12px;
+                font-weight: 400;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                color: var(--text-tertiary);
+                background: none;
+                border: 0.5px solid var(--border);
+                padding: 6px 14px;
+                cursor: pointer;
+                transition:
+                    color 0.15s,
+                    border-color 0.15s;
+            }
+            .theme-toggle:hover {
+                color: var(--text-primary);
+                border-color: var(--text-secondary);
+            }
+
+            /* === TABLE OF CONTENTS === */
+            .toc {
+                padding: 40px 48px;
+                border-bottom: 0.5px solid var(--border);
+                background: var(--bg-secondary);
+            }
+            .toc-label {
+                font-size: 11px;
+                font-weight: 500;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--text-tertiary);
+                margin-bottom: 20px;
+            }
+            .toc-list {
+                list-style: none;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 4px 32px;
+            }
+            .toc-list li {
+                font-size: 14px;
+                line-height: 2;
+            }
+            .toc-list a {
+                color: var(--text-secondary);
+                text-decoration: none;
+                display: flex;
+                align-items: baseline;
+                gap: 12px;
+                transition: color 0.15s;
+            }
+            .toc-list a:hover {
+                color: var(--text-primary);
+            }
+            .toc-num {
+                font-family: var(--mono);
+                font-size: 11px;
+                color: var(--text-tertiary);
+                min-width: 24px;
+            }
+
+            /* === SECTIONS === */
+            .section {
+                padding: 56px 48px;
+                border-bottom: 0.5px solid var(--border);
+            }
+            .section-label {
+                font-size: 11px;
+                font-weight: 500;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--text-tertiary);
+                margin-bottom: 8px;
+                display: flex;
+                align-items: baseline;
+                gap: 12px;
+            }
+            .section-num {
+                font-family: var(--mono);
+                font-weight: 400;
+            }
+            .section h2 {
+                font-size: 26px;
+                font-weight: 500;
+                letter-spacing: -0.4px;
+                margin-bottom: 24px;
+                color: var(--text-primary);
+            }
+            .section h3 {
+                font-size: 16px;
+                font-weight: 500;
+                color: var(--text-primary);
+                margin-top: 32px;
+                margin-bottom: 12px;
+                letter-spacing: -0.1px;
+            }
+            .section p {
+                font-size: 15px;
+                color: var(--text-secondary);
+                line-height: 1.75;
+                margin-bottom: 16px;
+                max-width: 680px;
+            }
+            .section p:last-child {
+                margin-bottom: 0;
+            }
+            .section strong {
+                color: var(--text-primary);
+                font-weight: 500;
+            }
+            .section a {
+                color: var(--text-primary);
+                text-decoration: underline;
+                text-decoration-color: var(--border);
+                text-underline-offset: 3px;
+                transition: text-decoration-color 0.15s;
+            }
+            .section a:hover {
+                text-decoration-color: var(--accent);
+            }
+            .section ul,
+            .section ol {
+                margin: 16px 0 16px 0;
+                padding-left: 0;
+                list-style: none;
+                max-width: 680px;
+            }
+            .section ul li,
+            .section ol li {
+                font-size: 15px;
+                color: var(--text-secondary);
+                line-height: 1.75;
+                padding: 4px 0 4px 28px;
+                position: relative;
+            }
+            .section ul li::before {
+                content: "—";
+                position: absolute;
+                left: 0;
+                color: var(--text-tertiary);
+            }
+            .section ol {
+                counter-reset: item;
+            }
+            .section ol li {
+                counter-increment: item;
+            }
+            .section ol li::before {
+                content: counter(item, decimal-leading-zero);
+                position: absolute;
+                left: 0;
+                color: var(--text-tertiary);
+                font-family: var(--mono);
+                font-size: 12px;
+                top: 8px;
+            }
+
+            /* === CODE BLOCKS === */
+            pre {
+                background: var(--code-bg);
+                border: 0.5px solid var(--border);
+                padding: 18px 22px;
+                margin: 20px 0;
+                overflow-x: auto;
+                font-family: var(--mono);
+                font-size: 13px;
+                line-height: 1.65;
+                color: var(--code-text);
+                max-width: 100%;
+            }
+            pre code {
+                background: none;
+                padding: 0;
+                font-size: inherit;
+                color: inherit;
+            }
+            code {
+                font-family: var(--mono);
+                font-size: 13px;
+                background: var(--code-bg);
+                padding: 2px 6px;
+                color: var(--code-text);
+                border-radius: 2px;
+            }
+
+            /* Inline note callout */
+            .note {
+                border-left: 2px solid var(--accent);
+                padding: 14px 20px;
+                margin: 20px 0;
+                background: var(--bg-secondary);
+                font-size: 14px;
+                color: var(--text-secondary);
+                max-width: 680px;
+            }
+            .note-label {
+                font-size: 10px;
+                font-weight: 500;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--accent);
+                margin-bottom: 6px;
+                display: block;
+            }
+            .note p {
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+            .note p:last-child {
+                margin-bottom: 0;
+            }
+
+            /* Tables (for env vars etc.) */
+            .var-table {
+                width: 100%;
+                max-width: 680px;
+                border-collapse: collapse;
+                margin: 20px 0;
+                font-size: 13px;
+            }
+            .var-table th {
+                text-align: left;
+                padding: 10px 16px;
+                font-size: 11px;
+                font-weight: 500;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                color: var(--text-tertiary);
+                border-bottom: 0.5px solid var(--border);
+            }
+            .var-table td {
+                padding: 14px 16px;
+                border-bottom: 0.5px solid var(--border);
+                color: var(--text-secondary);
+                vertical-align: top;
+                line-height: 1.55;
+            }
+            .var-table td:first-child {
+                font-family: var(--mono);
+                color: var(--text-primary);
+                font-size: 12px;
+                white-space: nowrap;
+            }
+
+            /* === FOOTER === */
+            .footer-nav {
+                padding: 48px;
+                border-bottom: 0.5px solid var(--border);
+                display: flex;
+                justify-content: space-between;
+                gap: 24px;
+                flex-wrap: wrap;
+            }
+            .footer-nav-item {
+                font-size: 13px;
+                color: var(--text-tertiary);
+                text-decoration: none;
+                letter-spacing: 0.05em;
+            }
+            .footer-nav-item span {
+                display: block;
+                font-size: 11px;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+                color: var(--text-tertiary);
+                margin-bottom: 6px;
+            }
+            .footer-nav-item strong {
+                font-weight: 500;
+                color: var(--text-primary);
+                font-size: 15px;
+            }
+            .footer-nav-item:hover strong {
+                color: var(--accent);
+            }
+
+            .footer {
+                padding: 36px 48px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+            .footer-links {
+                display: flex;
+                gap: 24px;
+            }
+            .footer-link {
+                font-size: 13px;
+                color: var(--text-secondary);
+                text-decoration: none;
+            }
+            .footer-link:hover {
+                color: var(--text-primary);
+            }
+
+            @media (max-width: 600px) {
+                .page-header,
+                .toc,
+                .section,
+                .footer-nav {
+                    padding: 40px 24px;
+                }
+                .footer {
+                    padding: 32px 24px;
+                }
+                .page-title {
+                    font-size: 30px;
+                }
+                .section h2 {
+                    font-size: 22px;
+                }
+                .theme-toggle {
+                    top: 20px;
+                    right: 24px;
+                }
+                pre {
+                    font-size: 12px;
+                    padding: 14px 16px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="page-header">
+            <button
+                class="theme-toggle"
+                id="themeToggle"
+                onclick="toggleTheme()"
+            >
+                Dark
+            </button>
+            <div class="breadcrumb">
+                <a href="index.html">Gesso</a>
+                <span class="sep">/</span>
+                <span>Documentation</span>
+                <span class="sep">/</span>
+                <span>Installation</span>
+            </div>
+            <div class="page-title">Installation Manual</div>
+            <div class="page-subtitle">Local Development &amp; Deployment</div>
+            <p class="page-desc">
+                A complete walkthrough for setting up Gesso on your machine and
+                deploying it to production. Plan on roughly thirty to sixty
+                minutes for a first-time setup, depending on whether you already
+                have accounts with Supabase and Vercel.
+            </p>
+        </div>
+
+        <div class="toc">
+            <div class="toc-label">Contents</div>
+            <ul class="toc-list">
+                <li>
+                    <a href="#prerequisites"
+                        ><span class="toc-num">01</span>
+                        <span>Prerequisites</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#clone"
+                        ><span class="toc-num">02</span>
+                        <span>Clone the Repository</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#dependencies"
+                        ><span class="toc-num">03</span>
+                        <span>Install Dependencies</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#supabase"
+                        ><span class="toc-num">04</span>
+                        <span>Set Up Supabase</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#environment"
+                        ><span class="toc-num">05</span>
+                        <span>Environment Variables</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#database"
+                        ><span class="toc-num">06</span>
+                        <span>Database Schema</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#storage"
+                        ><span class="toc-num">07</span>
+                        <span>Storage Buckets</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#auth"
+                        ><span class="toc-num">08</span>
+                        <span>Authentication</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#run"
+                        ><span class="toc-num">09</span>
+                        <span>Run the Dev Server</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#first-admin"
+                        ><span class="toc-num">10</span>
+                        <span>Create the First Admin</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#deploy"
+                        ><span class="toc-num">11</span>
+                        <span>Deploy to Vercel</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#troubleshooting"
+                        ><span class="toc-num">12</span>
+                        <span>Troubleshooting</span></a
+                    >
+                </li>
+                <li>
+                    <a href="#next-steps"
+                        ><span class="toc-num">13</span>
+                        <span>Next Steps</span></a
+                    >
+                </li>
+            </ul>
+        </div>
+
+        <div class="section" id="prerequisites">
+            <div class="section-label">
+                <span class="section-num">01</span> Prerequisites
+            </div>
+            <h2>What you need before starting</h2>
+            <p>
+                Gesso runs on Next.js 16 with the App Router and uses Supabase
+                for its database, authentication, and file storage. Make sure
+                the following are installed and accessible from your terminal.
+            </p>
+            <ul>
+                <li>
+                    <strong>Node.js 20.x or later.</strong> Next.js 16 requires
+                    Node 20+. Check with <code>node --version</code>. If you
+                    need to install or upgrade, use
+                    <a href="https://nodejs.org">nodejs.org</a> or a version
+                    manager such as <code>nvm</code>.
+                </li>
+                <li>
+                    <strong>npm 10+, or pnpm, yarn, or bun.</strong> The
+                    examples in this manual use <code>npm</code>, but any
+                    package manager that respects the lockfile will work.
+                </li>
+                <li>
+                    <strong>Git.</strong> Required to clone the repository.
+                    Verify with <code>git --version</code>.
+                </li>
+                <li>
+                    <strong>A Supabase account.</strong> Sign up at
+                    <a href="https://supabase.com">supabase.com</a>. The free
+                    tier is sufficient for development and small courses.
+                </li>
+                <li>
+                    <strong>A Vercel account</strong> for deployment, optional
+                    if you only intend to run locally.
+                </li>
+                <li>
+                    <strong>A code editor.</strong> VS Code, Cursor, or Zed all
+                    work well with the project's ESLint configuration.
+                </li>
+            </ul>
+        </div>
+
+        <div class="section" id="clone">
+            <div class="section-label">
+                <span class="section-num">02</span> Clone the Repository
+            </div>
+            <h2>Get the source code</h2>
+            <p>
+                Clone the repository to your machine and move into the project
+                directory.
+            </p>
+            <pre><code>git clone https://github.com/stockphrase/gesso.git
+cd gesso</code></pre>
+            <p>
+                If you plan to contribute changes, fork the repository on GitHub
+                first and clone your fork instead. You can add the upstream
+                remote afterward with
+                <code>git remote add upstream https://github.com/stockphrase/gesso.git</code>.
+            </p>
+        </div>
+
+        <div class="section" id="dependencies">
+            <div class="section-label">
+                <span class="section-num">03</span> Install Dependencies
+            </div>
+            <h2>Install the project's packages</h2>
+            <p>
+                From inside the <code>gesso</code> directory, install
+                dependencies. The lockfile pins exact versions, so use a clean
+                install for reproducibility.
+            </p>
+            <pre><code>npm install</code></pre>
+            <p>
+                Equivalent commands for other package managers:
+                <code>pnpm install</code>, <code>yarn install</code>, or
+                <code>bun install</code>. The install pulls down Next.js 16,
+                React 19, the Supabase client libraries, Tailwind CSS v4,
+                FontAwesome, JSZip, and Marked, among others.
+            </p>
+            <div class="note">
+                <span class="note-label">Note</span>
+                <p>
+                    If you see warnings about peer dependencies for React 19,
+                    they are expected and safe to ignore. The project is built
+                    against React 19.2 and Next.js 16, which are released and
+                    stable.
+                </p>
+            </div>
+        </div>
+
+        <div class="section" id="supabase">
+            <div class="section-label">
+                <span class="section-num">04</span> Set Up Supabase
+            </div>
+            <h2>Create your project</h2>
+            <p>
+                Supabase backs every persistent piece of Gesso: user accounts,
+                courses, assignments, submissions, and uploaded files. You will
+                create one project per Gesso instance.
+            </p>
+            <ol>
+                <li>
+                    Sign in to
+                    <a href="https://supabase.com/dashboard">supabase.com</a>
+                    and click <strong>New project</strong>.
+                </li>
+                <li>
+                    Pick an organization, give the project a name (for example,
+                    <code>gesso-dev</code>), and set a strong database password.
+                    Save the password in a password manager.
+                </li>
+                <li>
+                    Choose the region closest to your users. Region cannot be
+                    changed later without recreating the project.
+                </li>
+                <li>
+                    Wait for provisioning to finish. It usually takes one to two
+                    minutes.
+                </li>
+                <li>
+                    Once the project is ready, go to
+                    <strong>Project Settings &rarr; API</strong>. You will need
+                    three values from this page in the next step: the
+                    <strong>Project URL</strong>, the
+                    <strong>anon public key</strong>, and the
+                    <strong>service_role key</strong>.
+                </li>
+            </ol>
+            <div class="note">
+                <span class="note-label">Security</span>
+                <p>
+                    The <code>service_role</code> key bypasses Row Level
+                    Security and must never be exposed to the browser or
+                    committed to git. It belongs only in server-side code and in
+                    your <code>.env.local</code> file.
+                </p>
+            </div>
+        </div>
+
+        <div class="section" id="environment">
+            <div class="section-label">
+                <span class="section-num">05</span> Environment Variables
+            </div>
+            <h2>Configure your local environment</h2>
+            <p>
+                Create a file named <code>.env.local</code> in the project root.
+                This file is git-ignored and stays on your machine. Populate it
+                with the values you copied from the Supabase API settings page.
+            </p>
+            <pre><code>NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key</code></pre>
+            <p>
+                Each variable serves a specific purpose:
+            </p>
+            <table class="var-table">
+                <thead>
+                    <tr>
+                        <th>Variable</th>
+                        <th>Used by</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>NEXT_PUBLIC_SUPABASE_URL</td>
+                        <td>
+                            The base URL of your Supabase project. Exposed to
+                            the browser, used by the client to talk to
+                            Supabase.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>NEXT_PUBLIC_SUPABASE_ANON_KEY</td>
+                        <td>
+                            The public-facing API key. Safe to expose; access
+                            control is enforced server-side via Row Level
+                            Security.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>SUPABASE_SERVICE_ROLE_KEY</td>
+                        <td>
+                            Server-only key for privileged operations such as
+                            creating users from the admin panel. Never sent to
+                            the browser.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>
+                Variables that begin with <code>NEXT_PUBLIC_</code> are
+                inlined into the client bundle by Next.js. Variables without
+                that prefix are only available in server components, route
+                handlers, and server actions.
+            </p>
+        </div>
+
+        <div class="section" id="database">
+            <div class="section-label">
+                <span class="section-num">06</span> Database Schema
+            </div>
+            <h2>Set up your tables</h2>
+            <p>
+                Gesso expects a specific set of tables in your Supabase
+                Postgres database. Open
+                <strong>SQL Editor</strong> in your Supabase dashboard and
+                create the schema. You can either run a migration file from the
+                repository (if one is provided) or apply the schema by hand.
+            </p>
+            <p>
+                The core tables are:
+            </p>
+            <ul>
+                <li>
+                    <strong>profiles</strong> — extends Supabase's
+                    <code>auth.users</code> with role (teacher, tutor, student)
+                    and display name.
+                </li>
+                <li>
+                    <strong>courses</strong> — one row per course, owned by a
+                    teacher.
+                </li>
+                <li>
+                    <strong>course_members</strong> — joins users to courses
+                    with a per-course role.
+                </li>
+                <li>
+                    <strong>assignments</strong> — multi-stage drafts with due
+                    dates per stage.
+                </li>
+                <li>
+                    <strong>submissions</strong> — student uploads, one row per
+                    stage per student.
+                </li>
+                <li>
+                    <strong>announcements</strong> — dated posts, scoped to a
+                    course.
+                </li>
+                <li>
+                    <strong>syllabus_entries</strong> — Markdown content
+                    rendered for students.
+                </li>
+                <li>
+                    <strong>email_whitelist</strong> — controls who is allowed
+                    to register.
+                </li>
+            </ul>
+            <p>
+                Each table should have <strong>Row Level Security enabled</strong>
+                with policies that scope access by course membership. If the
+                repository ships a <code>supabase/</code> directory with
+                migration files, run them in order; otherwise, refer to the
+                schema documentation in the project README.
+            </p>
+            <div class="note">
+                <span class="note-label">Tip</span>
+                <p>
+                    The Supabase CLI makes schema management much easier for
+                    iterative development. Install it with
+                    <code>npm install -g supabase</code>, then use
+                    <code>supabase link</code> to connect your local project to
+                    the cloud database.
+                </p>
+            </div>
+        </div>
+
+        <div class="section" id="storage">
+            <div class="section-label">
+                <span class="section-num">07</span> Storage Buckets
+            </div>
+            <h2>Configure file storage</h2>
+            <p>
+                Course materials and student submissions are stored in Supabase
+                Storage. In your Supabase dashboard, go to
+                <strong>Storage</strong> and create the following buckets:
+            </p>
+            <ul>
+                <li>
+                    <strong>course-files</strong> — instructor-uploaded
+                    materials. Read access for course members, write access for
+                    teachers.
+                </li>
+                <li>
+                    <strong>submissions</strong> — student drafts. Read and
+                    write access scoped to the student who owns the file, plus
+                    read for the course's teachers and tutors.
+                </li>
+                <li>
+                    <strong>returned-work</strong> — files marked up by
+                    teachers and returned to students.
+                </li>
+            </ul>
+            <p>
+                For each bucket, set it to <strong>private</strong> (not
+                public), and add Storage policies that mirror your database
+                row-level policies. Files should never be reachable by URL
+                without an authenticated request.
+            </p>
+        </div>
+
+        <div class="section" id="auth">
+            <div class="section-label">
+                <span class="section-num">08</span> Authentication
+            </div>
+            <h2>Configure sign-in</h2>
+            <p>
+                Gesso uses Supabase Auth with email-and-password sign-in. Open
+                <strong>Authentication &rarr; Providers</strong> in your
+                Supabase dashboard and confirm that the Email provider is
+                enabled.
+            </p>
+            <h3>Site URL and redirect URLs</h3>
+            <p>
+                Under <strong>Authentication &rarr; URL Configuration</strong>,
+                set the <strong>Site URL</strong> to your dev URL (typically
+                <code>http://localhost:3000</code>) and add additional redirect
+                URLs for any environments you deploy to, such as your Vercel
+                preview and production domains.
+            </p>
+            <h3>Email templates</h3>
+            <p>
+                Customize the confirmation and password-reset email templates
+                under <strong>Authentication &rarr; Email Templates</strong>.
+                The defaults will work, but updating the sender name and visual
+                style is recommended for production.
+            </p>
+            <h3>Whitelist enforcement</h3>
+            <p>
+                Gesso only allows registration for email addresses present in
+                the <code>email_whitelist</code> table. New addresses are added
+                by an admin from inside the application; users cannot
+                self-register without being on the list.
+            </p>
+        </div>
+
+        <div class="section" id="run">
+            <div class="section-label">
+                <span class="section-num">09</span> Run the Dev Server
+            </div>
+            <h2>Start the application</h2>
+            <p>
+                With dependencies installed and your environment file in
+                place, start Next.js in development mode.
+            </p>
+            <pre><code>npm run dev</code></pre>
+            <p>
+                The app will be available at
+                <a href="http://localhost:3000">http://localhost:3000</a>.
+                Edits to files under <code>app/</code> and
+                <code>components/</code> hot-reload automatically. The first
+                page load may take a few seconds while Next.js compiles.
+            </p>
+            <h3>Accessing from another device on your network</h3>
+            <p>
+                The repository's <code>next.config.mjs</code> includes an
+                <code>allowedDevOrigins</code> entry for a specific local IP.
+                If you intend to test from a phone or another machine on your
+                LAN, edit that file to include your own dev machine's IP, then
+                restart the dev server.
+            </p>
+            <pre><code>// next.config.mjs
+const nextConfig = {
+  allowedDevOrigins: ['192.168.1.42'],
+};</code></pre>
+        </div>
+
+        <div class="section" id="first-admin">
+            <div class="section-label">
+                <span class="section-num">10</span> Create the First Admin
+            </div>
+            <h2>Bootstrap your account</h2>
+            <p>
+                Gesso has no public sign-up. The first user must be created
+                manually so that they can then add other users from the admin
+                panel.
+            </p>
+            <ol>
+                <li>
+                    In Supabase, open
+                    <strong>Authentication &rarr; Users</strong> and click
+                    <strong>Add user &rarr; Create new user</strong>. Enter
+                    your email and a password. Make sure
+                    <strong>Auto Confirm User</strong> is checked.
+                </li>
+                <li>
+                    Open the SQL Editor and insert a matching profile row,
+                    setting the role to <code>teacher</code> or
+                    <code>admin</code>:
+                </li>
+            </ol>
+            <pre><code>insert into public.profiles (id, email, display_name, role)
+values (
+  'paste-the-user-id-from-auth-users',
+  'you@example.com',
+  'Your Name',
+  'teacher'
+);</code></pre>
+            <p>
+                You can now sign in at
+                <code>http://localhost:3000</code> and create your first
+                course. From there, additional users can be invited through the
+                application's UI, which writes to the
+                <code>email_whitelist</code> table on your behalf.
+            </p>
+        </div>
+
+        <div class="section" id="deploy">
+            <div class="section-label">
+                <span class="section-num">11</span> Deploy to Vercel
+            </div>
+            <h2>Push to production</h2>
+            <p>
+                Vercel is the recommended host for Next.js applications and
+                the path of least resistance for Gesso.
+            </p>
+            <ol>
+                <li>
+                    Push your fork to GitHub if you have not already.
+                </li>
+                <li>
+                    Sign in to
+                    <a href="https://vercel.com/new">vercel.com/new</a> and
+                    import the repository. Vercel auto-detects Next.js and
+                    fills in the build settings.
+                </li>
+                <li>
+                    Under <strong>Environment Variables</strong>, add the same
+                    three keys from your <code>.env.local</code>:
+                    <code>NEXT_PUBLIC_SUPABASE_URL</code>,
+                    <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>, and
+                    <code>SUPABASE_SERVICE_ROLE_KEY</code>. Apply them to all
+                    environments (Production, Preview, Development).
+                </li>
+                <li>
+                    Click <strong>Deploy</strong>. The first build takes two to
+                    four minutes.
+                </li>
+                <li>
+                    Once deployed, copy the production URL and add it to your
+                    Supabase project's
+                    <strong>Authentication &rarr; URL Configuration</strong>
+                    as both the Site URL and an allowed redirect.
+                </li>
+            </ol>
+            <p>
+                Subsequent pushes to your default branch trigger automatic
+                production deploys. Pull requests get their own preview URL,
+                which is handy for review.
+            </p>
+        </div>
+
+        <div class="section" id="troubleshooting">
+            <div class="section-label">
+                <span class="section-num">12</span> Troubleshooting
+            </div>
+            <h2>Common issues</h2>
+            <h3>Build fails with "Module not found"</h3>
+            <p>
+                Delete <code>node_modules</code> and <code>.next</code>, then
+                run <code>npm install</code> again. Verify you are on Node 20
+                or later with <code>node --version</code>.
+            </p>
+            <h3>"Invalid API key" from Supabase</h3>
+            <p>
+                Re-copy the keys from
+                <strong>Project Settings &rarr; API</strong>. Keys are scoped
+                to a single project — using a key from the wrong project will
+                fail silently or with cryptic errors. Restart the dev server
+                after editing <code>.env.local</code>; Next.js does not pick up
+                env changes automatically.
+            </p>
+            <h3>Sign-up redirects to localhost in production</h3>
+            <p>
+                Update the Site URL in
+                <strong>Authentication &rarr; URL Configuration</strong> to
+                your production domain, and add it to the allowed redirect
+                URLs.
+            </p>
+            <h3>Files upload but cannot be downloaded</h3>
+            <p>
+                Check your Storage bucket policies. The most common cause is a
+                bucket that is private (correct) but missing a SELECT policy
+                for authenticated users who should have access.
+            </p>
+            <h3>Row Level Security errors</h3>
+            <p>
+                If queries return empty arrays when they should return data,
+                inspect your RLS policies in the Supabase dashboard under
+                <strong>Authentication &rarr; Policies</strong>. A missing
+                policy is functionally identical to "no rows match."
+            </p>
+            <h3>Tailwind classes not applying</h3>
+            <p>
+                Tailwind v4 reads its content paths from the Next.js
+                configuration automatically, but if you add new top-level
+                directories, restart the dev server so the JIT compiler picks
+                them up.
+            </p>
+        </div>
+
+        <div class="section" id="next-steps">
+            <div class="section-label">
+                <span class="section-num">13</span> Next Steps
+            </div>
+            <h2>Once Gesso is running</h2>
+            <p>
+                With your instance up and your first admin account created, the
+                day-to-day work happens inside the application. The
+                <a href="user-manual.html">User Manual</a> covers everything
+                from setting up a course and managing your roster to creating
+                multi-stage assignments and returning marked drafts. Share it
+                with the teachers, students, and tutors on your instance.
+            </p>
+        </div>
+
+        <div class="footer-nav">
+            <a href="index.html" class="footer-nav-item">
+                <span>Back to</span>
+                <strong>&larr; Home</strong>
+            </a>
+            <a
+                href="user-manual.html"
+                class="footer-nav-item"
+                style="text-align: right"
+            >
+                <span>Next</span>
+                <strong>User Manual &rarr;</strong>
+            </a>
+        </div>
+
+        <div class="footer">
+            <div class="footer-links">
+                <a
+                    href="https://github.com/stockphrase/gesso"
+                    class="footer-link"
+                    >GitHub</a
+                >
+                <a href="index.html" class="footer-link">Home</a>
+                <a href="user-manual.html" class="footer-link">User Manual</a>
+            </div>
+        </div>
+
+        <script>
+            function toggleTheme() {
+                const html = document.documentElement;
+                const btn = document.getElementById("themeToggle");
+                if (html.getAttribute("data-theme") === "light") {
+                    html.setAttribute("data-theme", "dark");
+                    btn.textContent = "Light";
+                    localStorage.setItem("gesso-theme", "dark");
+                } else {
+                    html.setAttribute("data-theme", "light");
+                    btn.textContent = "Dark";
+                    localStorage.setItem("gesso-theme", "light");
+                }
+            }
+
+            const saved = localStorage.getItem("gesso-theme");
+            if (saved === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+                document.getElementById("themeToggle").textContent = "Light";
+            }
+        </script>
+    </body>
+</html>
