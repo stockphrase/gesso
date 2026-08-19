@@ -33,10 +33,18 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     async function verifyToken() {
       const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
       const tokenHash = params.get("token_hash");
       const type = params.get("type");
 
-      if (tokenHash && type === "recovery") {
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          setError("Invalid or expired reset link. Please request a new one.");
+        } else {
+          setReady(true);
+        }
+      } else if (tokenHash && type === "recovery") {
         const { error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: "recovery",
